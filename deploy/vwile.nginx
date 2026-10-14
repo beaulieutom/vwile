@@ -1,0 +1,35 @@
+# /etc/nginx/sites-available/vwile
+# Sert le site statique (dossier `dist/`) sur tcg.lustre-auto.fr.
+# Bloc indépendant : il ne touche pas à la config de lustre-auto.fr.
+# Le HTTPS est ajouté ensuite par certbot.
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name tcg.lustre-auto.fr;
+
+    root /var/www/vwile;
+    index index.html;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+
+    gzip on;
+    gzip_comp_level 6;
+    gzip_types text/css application/javascript application/json image/svg+xml text/plain;
+
+    # app.js et style.css ne sont pas fingerprintés : on revalide à chaque visite
+    location ~* \.(js|css|html)$ {
+        add_header Cache-Control "no-cache";
+    }
+
+    location /assets/ {
+        expires 7d;
+        add_header Cache-Control "public";
+    }
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
