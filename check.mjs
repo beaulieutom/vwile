@@ -1,0 +1,38 @@
+import vm from 'node:vm';
+import {readFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import {webcrypto} from 'node:crypto';
+const nodes=new Map();
+const node=selector=>{if(!nodes.has(selector))nodes.set(selector,{textContent:'',innerHTML:'',hidden:true,style:{},classList:{add(){},remove(){}},addEventListener(){},querySelector(){return {focus(){}}}});return nodes.get(selector)};
+const ctx=vm.createContext({console,structuredClone,crypto:webcrypto,setInterval(){},setTimeout(){},clearTimeout(){},localStorage:{getItem(){return null},setItem(){}},document:{querySelector:node,querySelectorAll(){return []},addEventListener(){},body:{style:{}}},window:{scrollTo(){}}});
+vm.runInContext(await readFile('dist/app.js','utf8'),ctx);
+const run=s=>vm.runInContext(s,ctx);
+assert.equal(run('state.cards.length'),12);
+assert.equal(run('cardBy("zg").rarity'),'Légendaire');
+assert(run('portrait(cardBy("zg"))').includes('assets/zg-fondateur.png'));
+assert.equal(run('state.cards.every(c=>c.atk+c.def===({Commune:3200,Rare:3600,Épique:3800,Légendaire:4000}[c.rarity]))'),true);
+assert.equal(run('TYPES.every((t,i)=>modifier(t,TYPES[(i+1)%6])===1.25&&modifier(t,TYPES[(i+5)%6])===0.8)'),true);
+assert.equal(run('damage(cardBy("alex"),cardBy("luna"),"defense")'),750);
+run('openPack("origines")');
+assert.equal(run('state.balance'),2200);
+assert.equal(run('state.opened'),1);
+assert.equal(run('state.cards.reduce((n,c)=>n+c.owned,0)'),11);
+for(let i=0;i<100;i++){
+ run('state=fresh();startBattle();');
+ let turns=0;
+ while(!run('battle.over')&&turns++<31)run('battleAction("attack")');
+ assert.equal(run('battle.over'),true);
+ assert.equal(run('battle.php>=0&&battle.ehp>=0'),true);
+ assert.equal(run('state.balance===2450||state.balance===2550'),true);
+}
+run('state=fresh();startBattle();battle.enemy="zg";power(cardBy("zg"));power(cardBy("zg"),true);');
+assert.equal(run('battle.boost.zg.atk'),400);
+assert.equal(run('battle.boost["ai:zg"].atk'),400);
+assert.equal(run('battle.used.length'),2);
+run('state=fresh();confirmBid("a1");');
+assert.equal(run('state.balance'),2005);
+assert.equal(run('cardBy("nox").owned'),0);
+run('state.auctions[0].ends=Date.now()-1;settleAuctions();settleAuctions();');
+assert.equal(run('cardBy("nox").owned'),1);
+assert.equal(run('state.balance'),2005);
+console.log('Verified: card budgets, type cycle, booster debit and 5-card grant, 100 complete duels, separate powers per player, auction reservation and exactly-once award.');
