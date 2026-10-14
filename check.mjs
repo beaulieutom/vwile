@@ -7,16 +7,16 @@ const node=selector=>{if(!nodes.has(selector))nodes.set(selector,{textContent:''
 const ctx=vm.createContext({console,structuredClone,crypto:webcrypto,setInterval(){},setTimeout(){},clearTimeout(){},localStorage:{getItem(){return null},setItem(){}},document:{querySelector:node,querySelectorAll(){return []},addEventListener(){},body:{style:{}}},window:{scrollTo(){}}});
 vm.runInContext(await readFile('dist/app.js','utf8'),ctx);
 const run=s=>vm.runInContext(s,ctx);
-assert.equal(run('state.cards.length'),12);
+assert.equal(run('state.cards.length'),14);
 assert.equal(run('cardBy("zg").rarity'),'Légendaire');
 assert(run('portrait(cardBy("zg"))').includes('assets/zg-fondateur.png'));
-assert.equal(run('state.cards.every(c=>c.atk+c.def===({Commune:3200,Rare:3600,Épique:3800,Légendaire:4000}[c.rarity]))'),true);
+assert.equal(run('state.cards.every(c=>c.atk+c.def===({Commune:3200,Rare:3600,Épique:3800,Héroïque:4000,Légendaire:4000,Mythique:4200}[c.rarity]))'),true);
 assert.equal(run('TYPES.every((t,i)=>modifier(t,TYPES[(i+1)%6])===1.25&&modifier(t,TYPES[(i+5)%6])===0.8)'),true);
 assert.equal(run('damage(cardBy("alex"),cardBy("luna"),"defense")'),750);
 run('openPack("origines")');
 assert.equal(run('state.balance'),2200);
 assert.equal(run('state.opened'),1);
-assert.equal(run('state.cards.reduce((n,c)=>n+c.owned,0)'),11);
+assert.equal(run('state.cards.reduce((n,c)=>n+c.owned,0)'),13);
 for(let i=0;i<100;i++){
  run('state=fresh();startBattle();');
  let turns=0;
@@ -36,3 +36,18 @@ run('state.auctions[0].ends=Date.now()-1;settleAuctions();settleAuctions();');
 assert.equal(run('cardBy("nox").owned'),1);
 assert.equal(run('state.balance'),2005);
 console.log('Verified: card budgets, type cycle, booster debit and 5-card grant, 100 complete duels, separate powers per player, auction reservation and exactly-once award.');
+
+run('state=fresh();state.deck=["zg-exile","yanis-vs-zg","zg"];startBattle();power(cardBy("zg-exile"));battle.player="yanis-vs-zg";power(cardBy("yanis-vs-zg"));');
+assert.equal(run('battle.boost["zg-exile"].atk'),500);
+assert.equal(run('battle.boost["zg-exile"].def'),-500);
+assert.equal(run('battle.boost["yanis-vs-zg"].def'),400);
+assert.equal(run('battle.boost["yanis-vs-zg"].atk'),-400);
+assert.equal(run('Number.isFinite(battle.boost["zg-exile"].atk)'),true);
+run('state=fresh();state.cards=state.cards.filter(c=>!SPECIAL_ART[c.id]||c.id==="zg");state.balance=999;cardBy("zg").name="Mon ZG";migrateCards(state);migrateCards(state);');
+assert.equal(run('state.cards.length'),14);
+assert.equal(run('state.balance'),999);
+assert.equal(run('cardBy("zg").name'),'Mon ZG');
+assert.equal(run('cardBy("zg-exile").owned'),1);
+assert.equal(run('cardBy("yanis-vs-zg").owned'),1);
+assert.equal(run('PACKS.every(p=>p.weights.reduce((a,b)=>a+b,0)===100)'),true);
+console.log('Verified: Mythique and Héroïque powers, 100% booster odds, idempotent migration preserving progress.');
