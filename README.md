@@ -7,3 +7,11 @@ ZG est la première légendaire. L’atelier permet de personnaliser les cartes 
 Cette version est un prototype local : pas de comptes partagés, de serveur multijoueur ni d’argent réel. Le marché utilise des vendeurs fictifs. Les ventes personnelles peuvent être retirées et n’ont pas d’acheteur automatique. Pour jouer ensemble, il faudra ajouter une authentification, une base de données partagée, la validation des tirages et enchères côté serveur ainsi qu’un moteur de duel synchronisé.
 
 Les règles détaillées sont accessibles dans l’application. Six types forment un cycle d’avantages (×1,25) et de faiblesses (×0,80). Les budgets ATK + DEF vont de 3 200 à 4 000 suivant la rareté. Une victoire rapporte 100 crédits fictifs.
+
+## Édition Exil & Armure
+
+Les trois cartes personnelles utilisent un design Full Art : illustration sur toute la carte, textes et statistiques superposés. ZG, le Fondateur est Légendaire (2 400 / 1 600). ZG Exilé est Mythique, type Lumière (2 500 / 1 700), avec Serment de l’exil : +500 ATK et −500 DEF. Yanis vs ZG, le Spadassin héroïque est Héroïque, type Ombre (2 300 / 1 700), avec Armure maléfique : +400 DEF et −400 ATK. Chaque pouvoir consomme un tour et ne s’active qu’une fois par duel.
+
+Héroïque utilise un budget de 4 000 et Mythique de 4 200. Les deux nouvelles cartes sont offertes une fois par sauvegarde ; la migration préserve les cartes personnalisées, les crédits et la progression. Elles peuvent aussi être obtenues dans les boosters, avec les probabilités affichées dans l’interface.
+
+Vérifications : `node --check dist/app.js` et `node check.mjs`. Lancement sans npm : `node server.mjs`.
