@@ -13,7 +13,7 @@ BASE.push(
  {id:'yanis-soldat',name:'Yanis',title:'Le soldat aux mille traumas',type:'Sol',rarity:'Héroïque',atk:1800,def:2200,skill:'Instinct de survie',effect:'Une fois par duel : +400 DEF, −400 ATK.',color:'#a4d0b2',look:3,owned:1,level:7,art:'assets/yanis-soldat.jpg'},
  {id:'abde-yanis',name:'Abdé et Yanis',title:'Les maîtres de la salle du temps et de l’esprit',type:'Temps',rarity:'Légendaire',atk:2000,def:2000,skill:'Sanctuaire hors du temps',effect:'Une fois par duel : restaure 400 PV.',color:'#e4be71',look:5,owned:1,level:7,art:'assets/abde-yanis-trone.jpg'}
 );
-BASE.push({id:'tom-samourai',name:'Tom',title:'Le samouraï rosé',type:'Nature',rarity:'Légendaire',atk:2300,def:1700,skill:'Pétales tranchants',effect:'Une fois par duel : +400 ATK, −400 DEF.',color:'#e8bf67',look:3,owned:1,level:7,art:'assets/tom-samourai-rose.png'});
+BASE.push({id:'tom-samourai',name:'Tom U7',title:'Le samouraï rosé',type:'Nature',rarity:'Légendaire',atk:2300,def:1700,skill:'Pétales tranchants',effect:'Une fois par duel : +400 ATK, −400 DEF.',color:'#e8bf67',look:3,owned:1,level:7,art:'assets/tom-samourai-rose.png'});
 BASE.push({id:'tom-u6',name:'Tom U6',title:'La peptidance',type:'Eau',rarity:'Mystique',atk:2000,def:2200,skill:'Réaction en chaîne',effect:'Une fois par duel : restaure 500 PV.',color:'#ff5c69',look:3,owned:1,level:8,art:'assets/tom-u6-peptidance.jpg'});
 BASE.push({id:'le-maire',name:'Le Maire',title:'',type:'Inconnu',rarity:'Inconnu',atk:null,def:null,skill:'Inconnu',effect:'Inconnu',unknown:true,color:'#c8d4e3',look:0,owned:1,level:1,art:'assets/le-maire.png'});
 function isPlayable(c){return !!c&&!c.unknown&&Number.isFinite(c.atk)&&Number.isFinite(c.def)&&TYPES.includes(c.type);}
@@ -36,11 +36,12 @@ function migrateCards(saved){
  saved.deck=[...new Set(saved.deck)].filter(id=>owned.has(id)).slice(0,3);
  if(version<3){for(const id of [...DEFAULT_DECK,...owned]){if(saved.deck.length===3)break;if(owned.has(id)&&!saved.deck.includes(id))saved.deck.push(id);}}
  if(version<4){const c=saved.cards.find(c=>c.id==='yanis-soldat');if(c){const base=BASE.find(c=>c.id==='yanis-soldat');for(const key of ['rarity','atk','def','effect','level'])c[key]=base[key];}}
- saved.catalogVersion=4;
+ if(version<5){const c=saved.cards.find(c=>c.id==='tom-samourai');if(c)c.name='Tom U7';}
+ saved.catalogVersion=5;
  return saved;
 }
 const STORAGE='vwile-tcg-v1';
-const fresh=()=>({catalogVersion:4,balance:2450,opened:0,wins:0,claimed:false,cards:structuredClone(BASE),deck:[...DEFAULT_DECK],auctions:[]});
+const fresh=()=>({catalogVersion:5,balance:2450,opened:0,wins:0,claimed:false,cards:structuredClone(BASE),deck:[...DEFAULT_DECK],auctions:[]});
 let state;try{const saved=JSON.parse(localStorage.getItem(STORAGE));state=saved?.cards?.length&&saved?.auctions&&Array.isArray(saved.deck)?migrateCards(saved):fresh()}catch{state=fresh()}
 try{localStorage.setItem(STORAGE,JSON.stringify(state))}catch{}
 let view='accueil',query='',filter='Toutes',sort='rarity',battle=null,toastTimer;

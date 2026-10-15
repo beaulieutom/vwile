@@ -1,5 +1,7 @@
 # VWILE TCG
 
+Le samouraï rosé se nomme désormais **Tom U7**. Cette mise à jour s’applique également aux anciennes sauvegardes, sans changer l’identifiant de la carte, ses exemplaires, son titre, sa rareté ni ses caractéristiques.
+
 Application de démonstration en français, sans dépendance : `npm run dev`, puis http://127.0.0.1:4173.
 
 ZG est la première légendaire. L’atelier permet de personnaliser les cartes et d’ajouter ses amis avec des illustrations vectorielles originales. Collection, boosters à probabilités affichées, doublons, enchères locales avec crédits réservés, deck de trois cartes et duel contre une IA sont jouables. La progression est enregistrée en localStorage dans le navigateur.

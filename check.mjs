@@ -123,3 +123,8 @@ assert.equal(run('state.cards.length'),8);
 assert.equal(run('cardBy("le-maire").owned'),1);
 assert.equal(run('state.balance'),910);
 console.log('Verified: Le Maire has null combat stats, one star, no subtitle or invented values, cannot enter combat or normal booster pools, and is added once to existing saves.');
+run('state=fresh();state.catalogVersion=4;cardBy("tom-samourai").name="Tom";cardBy("tom-samourai").owned=4;state.balance=1700;state.deck=["tom-samourai","zg","abde-yanis"];migrateCards(state);migrateCards(state);');
+assert.equal(run('cardBy("tom-samourai").name'),'Tom U7');
+assert.equal(run('cardBy("tom-samourai").owned'),4);
+assert.equal(run('state.balance'),1700);
+assert.equal(run('state.deck[0]'),'tom-samourai');
