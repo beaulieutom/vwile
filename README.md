@@ -28,10 +28,14 @@ Le bouton « Roue des types », en haut à droite de la collection, ouvre une ro
 
 ## Catalogue personnel et raretés
 
-Le catalogue de départ contient seulement les six cartes demandées avec photos : ZG le Fondateur, ZG Exilé, Yanis vs ZG, Yanis le soldat aux mille traumas, Abdé et Yanis, et Tom le samouraï rosé. Les onze exemples sont retirés des anciennes sauvegardes, des decks et des enchères. Les cartes créées personnellement dans l’atelier sont conservées. Les crédits réservés sur une annonce supprimée sont rendus une seule fois. Le deck est réparé lors de la migration, puis les choix suivants du joueur sont respectés. Les boosters ne tirent que les cartes du cercle et leurs probabilités et garanties sont affichées.
+Le catalogue de départ contient seulement les sept cartes demandées avec photos : ZG le Fondateur, ZG Exilé, Yanis vs ZG, Yanis le soldat aux mille traumas, Abdé et Yanis, Tom le samouraï rosé et Tom U6, La peptidance. Les onze exemples sont retirés des anciennes sauvegardes, des decks et des enchères. Les cartes créées personnellement dans l’atelier sont conservées. Les crédits réservés sur une annonce supprimée sont rendus une seule fois. Le deck est réparé lors de la migration, puis les choix suivants du joueur sont respectés. Les boosters ne tirent que les cartes du cercle et leurs probabilités et garanties sont affichées.
 
 Les contours dépendent de la rareté : rang 1 Mythique / Mystique rouge, rang 2 Légendaire doré, rang 3 Héroïque violet. Les raretés inférieures restent disponibles pour la création de futures cartes : Épique indigo, Rare bleu et Commune gris. La couleur du type demeure sur son badge indépendant.
 
 ## Tom, le samouraï rosé
 
-Tom rejoint le cercle en Légendaire Full Art dorée, type Nature, avec 2 300 ATK / 1 700 DEF. Pétales tranchants donne +400 ATK en échange de −400 DEF, une fois par duel. Yanis soldat est désormais uniquement Héroïque : la migration actualise le rang, les statistiques et le pouvoir tout en gardant ses exemplaires et le deck. Les boosters ne réservent plus de probabilité à Mystique, puisqu’aucune carte actuelle n’a ce rang.
+Tom rejoint le cercle en Légendaire Full Art dorée, type Nature, avec 2 300 ATK / 1 700 DEF. Pétales tranchants donne +400 ATK en échange de −400 DEF, une fois par duel. Yanis soldat est désormais uniquement Héroïque : la migration actualise le rang, les statistiques et le pouvoir tout en gardant ses exemplaires et le deck. La probabilité Mystique est désormais portée par Tom U6.
+
+## Tom U6 — La peptidance
+
+Tom U6 rejoint le cercle en Mystique Full Art rouge, type Eau, avec 2 000 ATK / 2 200 DEF. Réaction en chaîne restaure 500 PV une fois par duel et consomme le tour. La nouvelle image fournie illustre la carte. Un exemplaire rejoint chaque sauvegarde sans modifier les crédits, les doublons ni le deck. Les probabilités Mythique et Mystique sont à nouveau partagées entre ZG Exilé et Tom U6. Yanis soldat reste Héroïque.

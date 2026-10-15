@@ -95,3 +95,4 @@
 .auction-grid>.empty{grid-column:1/-1;border:1px dashed #3e3449;border-radius:8px;padding:45px 25px;line-height:1.8}
 @media(max-width:600px){.rarity-scale{gap:9px;padding:12px;font-size:9px}.rarity-scale-label{width:100%;margin-bottom:3px}.rarity-scale small{display:none}.collection-actions{justify-content:space-between}.collection-actions .button{flex:1}}
 .tcg-card.full-art .photo-tom-samourai{object-position:54% 32%}
+.tcg-card.full-art .photo-tom-u6{object-position:44% 35%}
