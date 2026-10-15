@@ -15,3 +15,9 @@ Les trois cartes personnelles utilisent un design Full Art : illustration sur to
 Héroïque utilise un budget de 4 000 et Mythique de 4 200. Les deux nouvelles cartes sont offertes une fois par sauvegarde ; la migration préserve les cartes personnalisées, les crédits et la progression. Elles peuvent aussi être obtenues dans les boosters, avec les probabilités affichées dans l’interface.
 
 Vérifications : `node --check dist/app.js` et `node check.mjs`. Lancement sans npm : `node server.mjs`.
+
+## Édition Mémoire & Temps
+
+Yanis, le soldat aux mille traumas est Mystique, type Ombre (1 800 ATK / 2 400 DEF). Son Instinct de survie échange 500 ATK contre 500 DEF. Abdé et Yanis, les maîtres de la salle du temps et de l’esprit est Légendaire, type Lumière (2 000 ATK / 2 000 DEF). Sanctuaire hors du temps restaure 400 PV. Ces deux cartes utilisent les photos fournies en Full Art et rejoignent une fois la collection, y compris les sauvegardes existantes.
+
+Mystique est une rareté distincte de Mythique avec le même budget de 4 200 points. Dans les tirages, les anciennes probabilités Mythique sont partagées entre Mythique et Mystique ; la somme des probabilités de chaque booster reste égale à 100 %.
