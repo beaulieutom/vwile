@@ -6,7 +6,7 @@ ZG est la première légendaire. L’atelier permet de personnaliser les cartes 
 
 Cette version est un prototype local : pas de comptes partagés, de serveur multijoueur ni d’argent réel. Le marché utilise des vendeurs fictifs. Les ventes personnelles peuvent être retirées et n’ont pas d’acheteur automatique. Pour jouer ensemble, il faudra ajouter une authentification, une base de données partagée, la validation des tirages et enchères côté serveur ainsi qu’un moteur de duel synchronisé.
 
-Les règles détaillées sont accessibles dans l’application. Six types forment un cycle d’avantages (×1,25) et de faiblesses (×0,80). Les budgets ATK + DEF vont de 3 200 à 4 000 suivant la rareté. Une victoire rapporte 100 crédits fictifs.
+Les règles détaillées sont accessibles dans l’application. Huit types forment un cycle d’avantages (×1,25) et de faiblesses (×0,80). Les budgets ATK + DEF vont de 3 200 à 4 000 suivant la rareté. Une victoire rapporte 100 crédits fictifs.
 
 ## Édition Exil & Armure
 
@@ -18,6 +18,8 @@ Vérifications : `node --check dist/app.js` et `node check.mjs`. Lancement sans 
 
 ## Édition Mémoire & Temps
 
-Yanis, le soldat aux mille traumas est Mystique, type Ombre (1 800 ATK / 2 400 DEF). Son Instinct de survie échange 500 ATK contre 500 DEF. Abdé et Yanis, les maîtres de la salle du temps et de l’esprit est Légendaire, type Lumière (2 000 ATK / 2 000 DEF). Sanctuaire hors du temps restaure 400 PV. Ces deux cartes utilisent les photos fournies en Full Art et rejoignent une fois la collection, y compris les sauvegardes existantes.
+Yanis, le soldat aux mille traumas est Mystique, type Sol (1 800 ATK / 2 400 DEF). Son Instinct de survie échange 500 ATK contre 500 DEF. Abdé et Yanis, les maîtres de la salle du temps et de l’esprit est Légendaire, type Temps (2 000 ATK / 2 000 DEF). Sanctuaire hors du temps restaure 400 PV. Ces deux cartes utilisent les photos fournies en Full Art et rejoignent une fois la collection, y compris les sauvegardes existantes.
 
 Mystique est une rareté distincte de Mythique avec le même budget de 4 200 points. Dans les tirages, les anciennes probabilités Mythique sont partagées entre Mythique et Mystique ; la somme des probabilités de chaque booster reste égale à 100 %.
+
+Cycle des types : Feu → Nature → Sol → Foudre → Eau → Ombre → Temps → Lumière → Feu. Chaque type bat le suivant (×1,25) et est faible contre le précédent (×0,80). La mise à jour des types Sol et Temps est appliquée une fois aux deux cartes déjà présentes dans les sauvegardes.

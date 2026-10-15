@@ -46,3 +46,5 @@
 .tcg-card.full-art .photo-abde-yanis{object-position:50% 43%}
 .tcg-card.full-art.long-title .card-title{bottom:31%}
 .tcg-card.full-art.long-title .card-subtitle{bottom:21.5%;font-size:clamp(6px,3cqw,9px);line-height:1.35}
+.type-ring{grid-template-columns:repeat(4,1fr)}
+@media(max-width:600px){.type-ring{grid-template-columns:repeat(2,1fr)}}
