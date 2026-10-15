@@ -4,7 +4,7 @@ Application de démonstration en français, sans dépendance : `npm run dev`, pu
 
 ZG est la première légendaire. L’atelier permet de personnaliser les cartes et d’ajouter ses amis avec des illustrations vectorielles originales. Collection, boosters à probabilités affichées, doublons, enchères locales avec crédits réservés, deck de trois cartes et duel contre une IA sont jouables. La progression est enregistrée en localStorage dans le navigateur.
 
-Cette version est un prototype local : pas de comptes partagés, de serveur multijoueur ni d’argent réel. Le marché utilise des vendeurs fictifs. Les ventes personnelles peuvent être retirées et n’ont pas d’acheteur automatique. Pour jouer ensemble, il faudra ajouter une authentification, une base de données partagée, la validation des tirages et enchères côté serveur ainsi qu’un moteur de duel synchronisé.
+Cette version est un prototype local : pas de comptes partagés, de serveur multijoueur ni d’argent réel. Le marché ne contient aucune annonce de démonstration. Les ventes personnelles peuvent être retirées et n’ont pas d’acheteur automatique. Pour jouer ensemble, il faudra ajouter une authentification, une base de données partagée, la validation des tirages et enchères côté serveur ainsi qu’un moteur de duel synchronisé.
 
 Les règles détaillées sont accessibles dans l’application. Huit types forment un cycle d’avantages (×1,25) et de faiblesses (×0,80). Les budgets ATK + DEF vont de 3 200 à 4 000 suivant la rareté. Une victoire rapporte 100 crédits fictifs.
 
@@ -24,4 +24,10 @@ Mystique est une rareté distincte de Mythique avec le même budget de 4 200 poi
 
 Cycle des types : Feu → Nature → Sol → Foudre → Eau → Ombre → Temps → Lumière → Feu. Chaque type bat le suivant (×1,25) et est faible contre le précédent (×0,80). La mise à jour des types Sol et Temps est appliquée une fois aux deux cartes déjà présentes dans les sauvegardes.
 
-La collection affiche une roue interactive avec huit couleurs et symboles distincts. Sélectionner un type montre son avantage, sa faiblesse et les multiplicateurs réellement utilisés dans les combats. Le bouton sous les relations filtre la collection par type ; le menu « Tous les types » permet de réinitialiser le filtre. Les affrontements entre types non adjacents et entre types identiques sont neutres (×1).
+Le bouton « Roue des types », en haut à droite de la collection, ouvre une roue interactive avec huit couleurs et symboles distincts. Sélectionner un type montre son avantage, sa faiblesse et les multiplicateurs réellement utilisés dans les combats. Le bouton sous les relations filtre la collection par type ; le menu « Tous les types » permet de réinitialiser le filtre. Les affrontements entre types non adjacents et entre types identiques sont neutres (×1).
+
+## Catalogue personnel et raretés
+
+Le catalogue de départ contient seulement les cinq cartes demandées avec photos : ZG le Fondateur, ZG Exilé, Yanis vs ZG, Yanis le soldat aux mille traumas, et Abdé et Yanis. Les onze exemples sont retirés des anciennes sauvegardes, des decks et des enchères. Les cartes créées personnellement dans l’atelier sont conservées. Les crédits réservés sur une annonce supprimée sont rendus une seule fois. Le deck est réparé lors de la migration, puis les choix suivants du joueur sont respectés. Les boosters ne tirent que les cartes du cercle et leurs probabilités et garanties sont affichées.
+
+Les contours dépendent de la rareté : rang 1 Mythique / Mystique rouge, rang 2 Légendaire doré, rang 3 Héroïque violet. Les raretés inférieures restent disponibles pour la création de futures cartes : Épique indigo, Rare bleu et Commune gris. La couleur du type demeure sur son badge indépendant.

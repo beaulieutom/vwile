@@ -80,3 +80,17 @@
 @media(max-width:1050px){.type-guide{padding:22px 20px 0}.type-guide-body{gap:20px;grid-template-columns:minmax(230px,1fr) minmax(240px,1fr)}.type-cycle{margin:0 -20px;gap:8px}.wheel-node{width:62px;min-height:44px}.matchup-row{padding:12px 9px}.matchup-row>span{font-size:7px}}
 @media(max-width:750px){.type-guide-body{grid-template-columns:1fr;gap:0}.type-wheel{max-width:330px}.type-inspector{padding:5px 0 20px;max-width:none}.type-guide-heading .pill{display:none}.type-guide-heading h2{font-size:21px}.wheel-node{width:67px;min-height:48px}.type-guide{padding:20px 18px 0}.type-cycle{margin:0 -18px;font-size:8px;gap:8px;padding:16px}.matchup-row{padding:13px}.matchup-row>span{font-size:8px}.type-cycle i{font-size:9px}}
 @media(max-width:360px){.wheel-node{width:56px;min-height:40px}.wheel-node>span{font-size:17px}.wheel-node>b{font-size:9px}.wheel-center strong{font-size:36px}.wheel-center small{font-size:5px}}
+.collection-actions{display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap}.wheel-launch{color:#c5b0ed!important}.wheel-launch svg{flex-shrink:0}
+.type-wheel-dialog{padding:30px 20px 20px}.type-wheel-dialog .type-guide{margin:10px 0 0}.type-wheel-dialog>.close{z-index:5}
+@media(max-width:750px){.page-head:has(.collection-actions){flex-wrap:wrap;gap:18px}.collection-actions{width:100%;justify-content:flex-end}.collection-actions .button{font-size:10px}.type-wheel-dialog{padding:25px 10px 12px}.type-wheel-dialog .type-guide{padding-top:16px}}
+
+/* Contours de rareté indépendants de la couleur du type. */
+.tcg-card.mythic,.tcg-card.mystic{border-color:#ff5c69;background:linear-gradient(135deg,#a94350,#21121e 30%,#211821 75%,#9f3c49)}
+.tcg-card.full-art.mythic,.tcg-card.full-art.mystic{box-shadow:inset 0 0 0 1px #fff6,0 0 20px #ff5c6927}
+.tcg-card.legendary{border-color:#e8bf67}.tcg-card.full-art.legendary{box-shadow:inset 0 0 0 1px #fff6,0 0 20px #e8bf6720}
+.tcg-card.heroic{border-color:#bd8bff;background:linear-gradient(135deg,#77529f,#1b1426 30%,#22182f 75%,#705294)}
+.tcg-card.full-art.heroic{box-shadow:inset 0 0 0 1px #fff6,0 0 20px #bd8bff27}
+.rarity-scale{display:flex;align-items:center;gap:13px;flex-wrap:wrap;padding:14px 17px;background:#14121c;border:1px solid var(--line);border-radius:7px;margin:8px 0 23px;font-size:10px}
+.rarity-scale-label{font-size:8px;letter-spacing:1.7px;color:var(--muted);margin-right:5px}.rarity-scale>span:not(:first-child){color:var(--rarity-color);display:flex;align-items:center;gap:6px}.rarity-scale i{width:6px;height:6px;border-radius:50%;background:var(--rarity-color)}.rarity-scale small{font-size:8px;opacity:.55;margin-right:3px}.rarity-scale>b{font-size:14px;color:#64596e;font-weight:400}
+.auction-grid>.empty{grid-column:1/-1;border:1px dashed #3e3449;border-radius:8px;padding:45px 25px;line-height:1.8}
+@media(max-width:600px){.rarity-scale{gap:9px;padding:12px;font-size:9px}.rarity-scale-label{width:100%;margin-bottom:3px}.rarity-scale small{display:none}.collection-actions{justify-content:space-between}.collection-actions .button{flex:1}}
