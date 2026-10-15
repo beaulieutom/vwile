@@ -23,3 +23,5 @@ Yanis, le soldat aux mille traumas est Mystique, type Sol (1 800 ATK / 2 400 DEF
 Mystique est une rareté distincte de Mythique avec le même budget de 4 200 points. Dans les tirages, les anciennes probabilités Mythique sont partagées entre Mythique et Mystique ; la somme des probabilités de chaque booster reste égale à 100 %.
 
 Cycle des types : Feu → Nature → Sol → Foudre → Eau → Ombre → Temps → Lumière → Feu. Chaque type bat le suivant (×1,25) et est faible contre le précédent (×0,80). La mise à jour des types Sol et Temps est appliquée une fois aux deux cartes déjà présentes dans les sauvegardes.
+
+La collection affiche une roue interactive avec huit couleurs et symboles distincts. Sélectionner un type montre son avantage, sa faiblesse et les multiplicateurs réellement utilisés dans les combats. Le bouton sous les relations filtre la collection par type ; le menu « Tous les types » permet de réinitialiser le filtre. Les affrontements entre types non adjacents et entre types identiques sont neutres (×1).
