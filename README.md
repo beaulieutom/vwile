@@ -18,7 +18,7 @@ Vérifications : `node --check dist/app.js` et `node check.mjs`. Lancement sans 
 
 ## Édition Mémoire & Temps
 
-Yanis, le soldat aux mille traumas est Mystique, type Sol (1 800 ATK / 2 400 DEF). Son Instinct de survie échange 500 ATK contre 500 DEF. Abdé et Yanis, les maîtres de la salle du temps et de l’esprit est Légendaire, type Temps (2 000 ATK / 2 000 DEF). Sanctuaire hors du temps restaure 400 PV. Ces deux cartes utilisent les photos fournies en Full Art et rejoignent une fois la collection, y compris les sauvegardes existantes.
+Yanis, le soldat aux mille traumas est Héroïque, type Sol (1 800 ATK / 2 200 DEF). Son Instinct de survie échange 400 ATK contre 400 DEF. Abdé et Yanis, les maîtres de la salle du temps et de l’esprit est Légendaire, type Temps (2 000 ATK / 2 000 DEF). Sanctuaire hors du temps restaure 400 PV. Ces deux cartes utilisent les photos fournies en Full Art et rejoignent une fois la collection, y compris les sauvegardes existantes.
 
 Mystique est une rareté distincte de Mythique avec le même budget de 4 200 points. Dans les tirages, les anciennes probabilités Mythique sont partagées entre Mythique et Mystique ; la somme des probabilités de chaque booster reste égale à 100 %.
 
@@ -28,6 +28,10 @@ Le bouton « Roue des types », en haut à droite de la collection, ouvre une ro
 
 ## Catalogue personnel et raretés
 
-Le catalogue de départ contient seulement les cinq cartes demandées avec photos : ZG le Fondateur, ZG Exilé, Yanis vs ZG, Yanis le soldat aux mille traumas, et Abdé et Yanis. Les onze exemples sont retirés des anciennes sauvegardes, des decks et des enchères. Les cartes créées personnellement dans l’atelier sont conservées. Les crédits réservés sur une annonce supprimée sont rendus une seule fois. Le deck est réparé lors de la migration, puis les choix suivants du joueur sont respectés. Les boosters ne tirent que les cartes du cercle et leurs probabilités et garanties sont affichées.
+Le catalogue de départ contient seulement les six cartes demandées avec photos : ZG le Fondateur, ZG Exilé, Yanis vs ZG, Yanis le soldat aux mille traumas, Abdé et Yanis, et Tom le samouraï rosé. Les onze exemples sont retirés des anciennes sauvegardes, des decks et des enchères. Les cartes créées personnellement dans l’atelier sont conservées. Les crédits réservés sur une annonce supprimée sont rendus une seule fois. Le deck est réparé lors de la migration, puis les choix suivants du joueur sont respectés. Les boosters ne tirent que les cartes du cercle et leurs probabilités et garanties sont affichées.
 
 Les contours dépendent de la rareté : rang 1 Mythique / Mystique rouge, rang 2 Légendaire doré, rang 3 Héroïque violet. Les raretés inférieures restent disponibles pour la création de futures cartes : Épique indigo, Rare bleu et Commune gris. La couleur du type demeure sur son badge indépendant.
+
+## Tom, le samouraï rosé
+
+Tom rejoint le cercle en Légendaire Full Art dorée, type Nature, avec 2 300 ATK / 1 700 DEF. Pétales tranchants donne +400 ATK en échange de −400 DEF, une fois par duel. Yanis soldat est désormais uniquement Héroïque : la migration actualise le rang, les statistiques et le pouvoir tout en gardant ses exemplaires et le deck. Les boosters ne réservent plus de probabilité à Mystique, puisqu’aucune carte actuelle n’a ce rang.

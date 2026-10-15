@@ -7,7 +7,7 @@ const node=selector=>{if(!nodes.has(selector))nodes.set(selector,{textContent:''
 const ctx=vm.createContext({console,structuredClone,crypto:webcrypto,setInterval(){},setTimeout(){},clearTimeout(){},localStorage:{getItem(){return null},setItem(){}},document:{querySelector:node,querySelectorAll(){return []},addEventListener(){},body:{style:{}}},window:{scrollTo(){}}});
 vm.runInContext(await readFile('dist/app.js','utf8'),ctx);
 const run=s=>vm.runInContext(s,ctx);
-const realIds=['zg','zg-exile','yanis-vs-zg','yanis-soldat','abde-yanis'];
+const realIds=['zg','zg-exile','yanis-vs-zg','yanis-soldat','abde-yanis','tom-samourai'];
 assert.deepEqual([...run('state.cards.map(c=>c.id)')],realIds);
 assert.equal(run('state.auctions.length'),0);
 assert.equal(run('state.cards.every(c=>SPECIAL_ART[c.id]&&c.atk+c.def===BUDGETS[c.rarity])'),true);
@@ -31,7 +31,7 @@ run('let draws=[];const originalRandomCard=randomCard;randomCard=(...args)=>{con
 for(const id of ['origines','elite','duel'])for(let i=0;i<50;i++){
  run(`state=fresh();draws=[];openPack('${id}');`);
  assert.equal(run('draws.length'),5);
- assert.equal(run('state.cards.reduce((n,c)=>n+c.owned,0)'),10);
+ assert.equal(run('state.cards.reduce((n,c)=>n+c.owned,0)'),11);
  assert.equal(run('draws.every(c=>BASE.some(b=>b.id===c.id))'),true);
  assert.equal(run('state.balance'),2450-run(`PACKS.find(p=>p.id==='${id}').cost`));
  const last=run('draws.at(-1)');
@@ -41,7 +41,7 @@ for(const id of ['origines','elite','duel'])for(let i=0;i<50;i++){
 }
 run(`state=fresh();state.catalogVersion=2;state.balance=1000;state.opened=9;state.wins=4;cardBy('zg').owned=7;state.cards.push({id:'alex',name:'Ancien exemple',owned:4},{...structuredClone(BASE[0]),id:'friend-personal',name:'Ami personnalisé'});state.deck=['alex','zg'];state.auctions=[{id:'old',card:'alex',mine:true,settled:false,price:425},{id:'settled',card:'luna',mine:true,settled:true,price:300},{id:'real',card:'zg',self:true,mine:false,price:100}];migrateCards(state);migrateCards(state);`);
 assert.equal(run('state.cards.some(c=>DEMO_IDS.has(c.id))'),false);
-assert.equal(run('state.cards.length'),6);
+assert.equal(run('state.cards.length'),7);
 assert.equal(run('cardBy("friend-personal").name'),'Ami personnalisé');
 assert.equal(run('cardBy("zg").owned'),7);
 assert.equal(run('state.balance'),1425);
@@ -63,11 +63,27 @@ run('state=fresh();startBattle();battle.enemy="zg";power(cardBy("zg"));power(car
 assert.equal(run('battle.boost.zg.atk'),400);
 assert.equal(run('battle.boost["ai:zg"].atk'),400);
 run('state=fresh();startBattle();power(cardBy("yanis-soldat"));battle.php=3000;power(cardBy("abde-yanis"));');
-assert.equal(run('battle.boost["yanis-soldat"].def'),500);
+assert.equal(run('battle.boost["yanis-soldat"].def'),400);
 assert.equal(run('battle.php'),3400);
 run('state=fresh();cardBy("zg").owned=0;state.auctions.push({id:"real-bid",card:"zg",price:100,ends:Date.now()+100000,mine:false,bids:0});confirmBid("real-bid");');
 assert.equal(run('state.balance'),2325);
 run('state.auctions[0].ends=Date.now()-1;settleAuctions();settleAuctions();');
 assert.equal(run('cardBy("zg").owned'),1);
 assert.equal(run('state.balance'),2325);
-console.log('Verified: five real cards only, 150 booster openings and guarantees, demo cleanup with exactly-once refund, custom cards/progress preserved, repaired deck, 100 duels, auctions, 64 type matchups, wheel hidden behind collection button.');
+console.log('Verified: six real cards only, 150 booster openings and guarantees, demo cleanup with exactly-once refund, custom cards/progress preserved, repaired deck, 100 duels, auctions, 64 type matchups, wheel hidden behind collection button.');
+
+assert.equal(run('cardBy("tom-samourai").rarity'),'Légendaire');
+assert.equal(run('cardBy("tom-samourai").type'),'Nature');
+assert.equal(run('cardBy("yanis-soldat").rarity'),'Héroïque');
+assert.equal(run('state.cards.some(c=>c.rarity==="Mystique")'),false);
+run('state=fresh();state.catalogVersion=3;state.cards=state.cards.filter(c=>c.id!=="tom-samourai");Object.assign(cardBy("yanis-soldat"),{rarity:"Mystique",atk:1800,def:2400,effect:"Une fois par duel : +500 DEF, −500 ATK.",level:8,owned:4});state.balance=1620;state.deck=["yanis-soldat","zg","abde-yanis"];migrateCards(state);migrateCards(state);');
+assert.equal(run('state.cards.length'),6);
+assert.equal(run('cardBy("tom-samourai").owned'),1);
+assert.equal(run('cardBy("yanis-soldat").owned'),4);
+assert.equal(run('cardBy("yanis-soldat").rarity'),'Héroïque');
+assert.equal(run('cardBy("yanis-soldat").atk+cardBy("yanis-soldat").def'),4000);
+assert.equal(run('cardBy("yanis-soldat").type'),'Sol');
+assert.equal(run('state.balance'),1620);
+assert.equal(run('state.deck[0]'),'yanis-soldat');
+assert.equal(run('PACKS.every(p=>p.weights.every((w,i)=>!w||BASE.some(c=>c.rarity===RARITIES[i])))'),true);
+console.log('Verified: Tom legendary Full Art, heroic Yanis migration preserving duplicates/deck/credits, no booster weight for absent rarities.');
