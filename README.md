@@ -53,3 +53,6 @@ Carte Full Art spéciale argentée, nommée uniquement « Le Maire », avec une 
 ## Emilien — Le Larp Tunisien
 
 Emilien rejoint le cercle en Héroïque Full Art violet, avec la nouvelle photo fournie. Type Feu, 2 100 ATK / 1 900 DEF, pouvoir Entrée en scène : +400 ATK contre −400 DEF une fois par duel. La carte est disponible dans la collection et les tirages Héroïque des boosters. Les anciennes sauvegardes reçoivent un exemplaire sans modifier leur progression.
+
+Les huit cartes jouables possèdent désormais un passif automatique lié à leur identité. Les définitions et déclencheurs sont dans `dist/passives.js`, indépendamment des pouvoirs actifs. Les détails de carte indiquent les règles complètes et l’arène affiche les bonus, charges et boucliers de chaque combattant. Les réserves sont propres au camp et au duel ; Le Maire reste entièrement inconnu. Les tests couvrent les plafonds, les consommations, les protections et les 64 combinaisons de combattants.
+L’entrée en duel et les attaques sont animées par `dist/combat-animation.js`. Les impacts reprennent la couleur et le symbole du type attaquant. Les séquences joueur/IA sont jouées successivement, bloquent les doubles actions et s’annulent à la sortie de l’arène. Le mode de mouvements réduits reste pris en charge.

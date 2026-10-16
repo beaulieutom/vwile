@@ -6,6 +6,8 @@ const nodes=new Map(),scheduled=new Map();let nextTimer=0,lastSaved=null;
 const node=selector=>{if(!nodes.has(selector))nodes.set(selector,{textContent:'',innerHTML:'',hidden:true,style:{setProperty(){}},dataset:{},classList:{add(){},remove(){}},addEventListener(){},querySelector(){return {focus(){}}},focus(){}});return nodes.get(selector)};
 const ctx=vm.createContext({console,structuredClone,crypto:webcrypto,setInterval(){},setTimeout(fn){const id=++nextTimer;scheduled.set(id,fn);return id;},clearTimeout(id){scheduled.delete(id);},localStorage:{getItem(){return null},setItem(k,v){lastSaved=v;}},document:{querySelector:node,querySelectorAll(){return []},addEventListener(){},body:{style:{}}},window:{scrollTo(){}}});
 vm.runInContext(await readFile('dist/game-features.js','utf8'),ctx);
+vm.runInContext(await readFile('dist/passives.js','utf8'),ctx);
+vm.runInContext(await readFile('dist/combat-animation.js','utf8'),ctx);
 vm.runInContext((await readFile('dist/app.js','utf8')).replace('unlimitedCredits:true','unlimitedCredits:false'),ctx);
 const run=s=>vm.runInContext(s,ctx);
 const realIds=['zg','zg-exile','yanis-vs-zg','yanis-soldat','abde-yanis','tom-samourai','tom-u6','le-maire','emilien-larp'];
@@ -215,3 +217,112 @@ assert.equal(run('openingSession.results.length'),5);
 assert.equal(run('openingSession.results[0].id'),'emilien-larp');
 run('closeModal();');
 console.log('Verified: stable rarity order with highest rarity last, no automatic tear, one tear trigger, bidirectional swipe threshold.');
+// Passive integration: actual HP, bonuses, consumption, both sides and reset.
+function duelWith(player,enemy){run(`closeModal();state=fresh();battle=null;startBattle();battle.player='${player}';battle.enemy='${enemy}';battle.enemyDeck=['${enemy}','zg','abde-yanis'];`);}
+duelWith('zg','zg');
+assert.equal(run('passiveStats(cardBy("zg")).atk'),200);
+run('passiveAction(cardBy("zg"),"defend");');
+assert.equal(run('takeBattleDamage(false,500)'),300);
+run('passiveAction(cardBy("zg"),"defend");');
+assert.equal(run('passiveMemory(cardBy("zg")).shield'),0);
+assert.equal(run('passiveMemory(cardBy("zg"),true).founderGuard'),false);
+run('passiveAction(cardBy("zg"),"defend",true);');
+assert.equal(run('takeBattleDamage(true,100)'),0);
+assert.equal(run('passiveMemory(cardBy("zg"),true).shield'),0);
+
+duelWith('zg-exile','zg');
+run('for(let i=0;i<6;i++)passiveAfterAttack(cardBy("zg-exile"),cardBy("zg"));battle.php=1500;');
+assert.equal(run('passiveStats(cardBy("zg-exile")).atk'),300);
+assert.equal(run('passiveStats(cardBy("zg-exile")).def'),150);
+run('passiveAction(cardBy("zg-exile"),"leave");');
+assert.equal(run('passiveStats(cardBy("zg-exile")).atk'),0);
+
+duelWith('yanis-vs-zg','zg');
+run('battle.enemyDeck=["zg","yanis-soldat","abde-yanis"];takeBattleDamage(false,800);');
+assert.equal(run('passiveStats(cardBy("yanis-vs-zg")).atk'),200);
+run('strike();');
+assert.equal(run('passiveMemory(cardBy("yanis-vs-zg")).charge'),25); // Recoil fuels the NEXT attack.
+assert.equal(run('passiveStats(cardBy("yanis-vs-zg")).def'),-100);
+run('passiveAction(cardBy("yanis-vs-zg"),"defend");');
+assert.equal(run('passiveStats(cardBy("yanis-vs-zg")).def'),0);
+run('battle.php=4000;takeBattleDamage(false,1500);');
+assert.equal(run('passiveMemory(cardBy("yanis-vs-zg")).charge'),300);
+
+duelWith('yanis-soldat','zg');
+assert.equal(run('takeBattleDamage(false,100)'),0);
+assert.equal(run('passiveStats(cardBy("yanis-soldat")).def'),0);
+assert.equal(run('takeBattleDamage(false,350)'),150);
+assert.equal(run('passiveStats(cardBy("yanis-soldat")).def'),100);
+assert.equal(run('takeBattleDamage(false,400)'),400);
+run('takeBattleDamage(false,100);takeBattleDamage(false,100);');
+assert.equal(run('passiveStats(cardBy("yanis-soldat")).def'),300);
+
+duelWith('abde-yanis','abde-yanis');
+run('battle.php=3000;for(let i=0;i<4;i++)passiveAction(cardBy("abde-yanis"),"defend");strike();');
+assert.equal(run('battle.ehp'),3700);
+assert.equal(run('battle.php'),3200);
+assert.equal(run('passiveMemory(cardBy("abde-yanis")).time'),0);
+run('strike();');
+assert.equal(run('battle.php'),3200);
+
+duelWith('tom-samourai','yanis-soldat');
+run('passiveAction(cardBy("tom-samourai"),"defend");strike();');
+assert.equal(run('passiveMemory(cardBy("tom-samourai")).iai'),false);
+assert.equal(run('passiveMemory(cardBy("tom-samourai")).shield'),150);
+assert.equal(run('takeBattleDamage(false,350)'),200);
+assert.equal(run('takeBattleDamage(false,350)'),350);
+
+duelWith('tom-u6','tom-u6');
+run('battle.php=2000;power(cardBy("tom-u6"));power(cardBy("tom-u6"));');
+assert.equal(run('battle.php'),2500); // Active power cannot be repeated.
+assert.equal(run('passiveMemory(cardBy("tom-u6")).doses'),2);
+run('passiveAction(cardBy("tom-u6"),"defend");for(let i=0;i<3;i++)strike();passiveAction(cardBy("tom-u6"),"defend");');
+assert.equal(run('battle.php'),2800);
+assert.equal(run('passiveMemory(cardBy("tom-u6")).doses'),0);
+assert.equal(run('passiveMemory(cardBy("tom-u6")).produced'),3);
+run('battle.php=0;passiveHeal(cardBy("tom-u6"),100,false);');
+assert.equal(run('battle.php'),0);
+
+duelWith('emilien-larp','emilien-larp');
+assert.equal(run('passiveStats(cardBy("emilien-larp")).atk'),200);
+run('passiveAction(cardBy("emilien-larp"),"defend");');
+assert.equal(run('passiveStats(cardBy("emilien-larp")).atk'),0);
+assert.equal(run('passiveStats(cardBy("emilien-larp")).def'),250);
+run('power(cardBy("emilien-larp"));');
+assert.equal(run('passiveStats(cardBy("emilien-larp")).atk'),200);
+assert.equal(run('passiveMemory(cardBy("emilien-larp")).shield'),100);
+assert.equal(run('passiveStats(cardBy("emilien-larp"),true).atk'),200);
+run('battle=null;startBattle();');
+assert.equal(run('passiveMemory(cardBy("emilien-larp")).shield'),0);
+assert.equal(run('passiveFor(cardBy("le-maire"))'),null);
+assert.equal(run('state.cards.filter(isPlayable).every(c=>passiveFor(c))'),true);
+console.log('Verified: eight identity passives affect combat; counters and shields capped, no healing from zero, no repeated power, independent AI memory, fresh duel resets, Mayor remains unknown.');
+for(const player of realIds.filter(id=>id!=='le-maire'))for(const enemy of realIds.filter(id=>id!=='le-maire')){
+ duelWith(player,enemy);
+ for(let turn=0;turn<31&&!run('battle.over');turn++){
+  const action=turn%5===0?'defend':turn%5===2?'power':'attack';
+  run(`battleAction('${action}'==='power'&&battle.used.includes(battle.player)?'attack':'${action}');`);
+  assert.equal(run('Number.isFinite(battle.php)&&Number.isFinite(battle.ehp)&&battle.php>=0&&battle.ehp>=0&&battle.php<=4000&&battle.ehp<=4000'),true);
+ }
+ assert.equal(run('battle.over'),true);
+}
+console.log('Verified: 64 passive matchups finish within 30 turns, including powers/defense/AI, with finite HP in the 0–4000 range.');
+// Attack presentation is sequential, cancellable, and cannot cause duplicate turns.
+duelWith('abde-yanis','tom-samourai');scheduled.clear();
+run('view="arene";strike();strike(true);playCombatEffects();');
+assert.equal(run('isCombatBusy()'),true);
+assert.equal(node('#combat-announcement').textContent.includes('Temps'),true);
+const hpDuringAnimation=run('battle.php');
+run('battleAction("attack");');assert.equal(run('battle.php'),hpDuringAnimation);
+const delivered=new Set();
+for(let i=0;i<15;i++){const pending=[...scheduled.entries()].filter(([id])=>!delivered.has(id));if(!pending.length)break;for(const [id,fn] of pending){delivered.add(id);fn();}}
+assert.equal(run('isCombatBusy()'),false);
+assert.equal(run('combatPresentation.queue.length'),0);
+assert.equal(node('#combat-announcement').textContent.includes('Nature'),true);
+run('queueCombatStrike({ai:false,attacker:"A",defender:"B",type:"Temps",diff:10,loss:10});playCombatEffects();');
+const cancelled=[...scheduled.values()];run('clearCombatPresentation();');for(const fn of cancelled)fn();
+assert.equal(run('isCombatBusy()'),false);
+assert.equal(run('combatPresentation.queue.length'),0);
+ctx.matchMedia=()=>({matches:true});run('queueCombatStrike({type:"Feu"});');assert.equal(run('combatPresentation.queue.length'),0);delete ctx.matchMedia;
+run('view="accueil";');
+console.log('Verified: attacks show attacker type, queue player/AI separately, lock duplicate actions, cancel stale effects, and respect reduced motion.');
