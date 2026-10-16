@@ -1,5 +1,9 @@
 # VWILE TCG
 
+L’onglet **Mon deck** permet d’ajouter et de retirer des cartes possédées, de choisir la carte d’ouverture et de lancer un duel. Trois cartes différentes sont autorisées ; les changements sont sauvegardés immédiatement. Un duel actif bloque les changements de deck. Le Maire demeure à collectionner.
+
+Les boosters s’ouvrent avec une animation dont la lueur correspond à la plus haute rareté des cinq cartes effectivement tirées : rouge pour Mythique/Mystique, doré pour Légendaire, violet pour Héroïque. Les cartes et le débit sont sauvegardés avant l’animation. La fermeture conserve le tirage ; le bouton « Passer l’animation » révèle immédiatement les résultats. La préférence de réduction des animations est respectée. Une ouverture active bloque les achats supplémentaires jusqu’à sa fermeture ou au choix explicite d’un autre booster.
+
 Le samouraï rosé se nomme désormais **Tom U7**. Cette mise à jour s’applique également aux anciennes sauvegardes, sans changer l’identifiant de la carte, ses exemplaires, son titre, sa rareté ni ses caractéristiques.
 
 Application de démonstration en français, sans dépendance : `npm run dev`, puis http://127.0.0.1:4173.
@@ -30,7 +34,7 @@ Le bouton « Roue des types », en haut à droite de la collection, ouvre une ro
 
 ## Catalogue personnel et raretés
 
-Le catalogue de départ contient seulement les huit cartes demandées avec photos : ZG le Fondateur, ZG Exilé, Yanis vs ZG, Yanis le soldat aux mille traumas, Abdé et Yanis, Tom le samouraï rosé et Tom U6, La peptidance. Les onze exemples sont retirés des anciennes sauvegardes, des decks et des enchères. Les cartes créées personnellement dans l’atelier sont conservées. Les crédits réservés sur une annonce supprimée sont rendus une seule fois. Le deck est réparé lors de la migration, puis les choix suivants du joueur sont respectés. Les boosters ne tirent que les cartes du cercle et leurs probabilités et garanties sont affichées.
+Le catalogue de départ contient seulement les neuf cartes demandées avec photos : ZG le Fondateur, ZG Exilé, Yanis vs ZG, Yanis le soldat aux mille traumas, Abdé et Yanis, Tom le samouraï rosé et Tom U6, La peptidance. Les onze exemples sont retirés des anciennes sauvegardes, des decks et des enchères. Les cartes créées personnellement dans l’atelier sont conservées. Les crédits réservés sur une annonce supprimée sont rendus une seule fois. Le deck est réparé lors de la migration, puis les choix suivants du joueur sont respectés. Les boosters ne tirent que les cartes du cercle et leurs probabilités et garanties sont affichées.
 
 Les contours dépendent de la rareté : rang 1 Mythique / Mystique rouge, rang 2 Légendaire doré, rang 3 Héroïque violet. Les raretés inférieures restent disponibles pour la création de futures cartes : Épique indigo, Rare bleu et Commune gris. La couleur du type demeure sur son badge indépendant.
 
@@ -45,3 +49,7 @@ Tom U6 rejoint le cercle en Mystique Full Art rouge, type Eau, avec 2 000 ATK / 
 ## Le Maire
 
 Carte Full Art spéciale argentée, nommée uniquement « Le Maire », avec une seule étoile. Type, rareté, attaque, défense et pouvoir sont affichés « Inconnu ». Les valeurs ATK et DEF sont réellement nulles : aucune statistique numérique cachée. Cette carte est offerte à la collection et reste hors des decks, des adversaires IA et des tirages ordinaires tant que ses caractéristiques ne sont pas définies. Le cycle des huit types reste inchangé.
+
+## Emilien — Le Larp Tunisien
+
+Emilien rejoint le cercle en Héroïque Full Art violet, avec la nouvelle photo fournie. Type Feu, 2 100 ATK / 1 900 DEF, pouvoir Entrée en scène : +400 ATK contre −400 DEF une fois par duel. La carte est disponible dans la collection et les tirages Héroïque des boosters. Les anciennes sauvegardes reçoivent un exemplaire sans modifier leur progression.
