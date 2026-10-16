@@ -1,8 +1,8 @@
 // Automatic, bounded passives. Active powers remain independent of these rules.
 const PASSIVES={
- ayman:{name:'Les restes du trône',short:'Une puissance perdue qui se réveille après les coups.',text:'Chaque impact qui retire réellement des PV à Ayman conserve un vestige de son ancienne puissance (maximum 3). Sa prochaine attaque consomme tous les vestiges : +100 ATK par vestige. À 1 500 PV ou moins, son instinct de survie lui donne aussi +150 DEF. Les vestiges restent en réserve lors d’une relève.'},
- zg:{name:'Pacte du Fondateur',short:'La diversité du cercle renforce ZG.',text:'Tant que ZG est actif : +100 ATK et DEF par autre type présent dans son deck (maximum +200). Sa première capacité défensive du duel crée un bouclier de 200 PV, absorbé au prochain dégât subi par ZG.'},
- 'zg-exile':{name:'Marche des dunes',short:'Les attaques successives nourrissent l’exil.',text:'Chaque attaque de ZG Exilé prépare +100 ATK pour les suivantes, jusqu’à +300. Quitter le terrain remet cette progression à zéro. À 1 500 PV ou moins, il gagne aussi +150 DEF.'},
+ ayman:{name:'Les restes du trône',short:'Une puissance perdue qui se réveille après les coups.',text:'Chaque impact qui retire réellement des PV à Ayman conserve un vestige de son ancienne puissance (maximum 3). Sa prochaine attaque consomme tous les vestiges : +100 ATK par vestige. À 750 PV ou moins, son instinct de survie lui donne aussi +150 DEF. Les vestiges restent en réserve lors d’une relève.'},
+ zg:{name:'Pacte du Fondateur',short:'La diversité du cercle renforce ZG.',text:'Tant que ZG est actif : +100 ATK et DEF par autre type allié présent au combat (maximum +200). Sa première capacité défensive du duel crée un bouclier de 200 PV, absorbé au prochain dégât subi par ZG.'},
+ 'zg-exile':{name:'Marche des dunes',short:'Les attaques successives nourrissent l’exil.',text:'Chaque attaque de ZG Exilé prépare +100 ATK pour les suivantes, jusqu’à +300. Quitter le terrain remet cette progression à zéro. À 750 PV ou moins, il gagne aussi +150 DEF.'},
  'yanis-vs-zg':{name:'La dette de l’armure',short:'Encaisse, charge l’armure, puis riposte.',text:'25 % des PV réellement perdus chargent l’armure (maximum 300). Sa prochaine attaque gagne autant d’ATK, puis vide la charge. Chaque attaque l’expose à −100 DEF, sans cumul, jusqu’à sa prochaine capacité défensive.'},
  'yanis-soldat':{name:'Hypervigilance',short:'Chaque impact devient une leçon de survie.',text:'Les deux premiers dégâts que subit Yanis sont réduits de 200 PV chacun. Chaque impact qui lui retire encore des PV lui donne +100 DEF pour le reste du duel, jusqu’à +300. Les impacts entièrement absorbés ne le renforcent pas.'},
  'abde-yanis':{name:'La salle hors du temps',short:'Défends pour stocker le temps. Attaque pour le libérer.',text:'Chaque capacité défensive stocke une charge de temps (maximum 2). Leur prochaine attaque consomme toutes les charges : +150 ATK et soin de 100 PV par charge. Les charges restent en réserve lors d’un changement de carte.'},
@@ -21,9 +21,9 @@ function passiveStats(c,ai=false){
  const bonus={atk:0,def:0};if(!battle||!passiveFor(c))return bonus;
  const m=passiveMemory(c,ai);
  switch(c.id){
- case'ayman':bonus.atk=m.vestiges*100;bonus.def=(ai?battle.ehp:battle.php)<=1500?150:0;break;
- case'zg':{const deck=ai?battle.enemyDeck:state.deck;const types=new Set(deck.map(cardBy).filter(Boolean).map(x=>x.type));types.delete(c.type);bonus.atk=bonus.def=Math.min(2,types.size)*100;break;}
- case'zg-exile':bonus.atk=m.chain*100;bonus.def=(ai?battle.ehp:battle.php)<=1500?150:0;break;
+ case'ayman':bonus.atk=m.vestiges*100;bonus.def=currentHP(c,ai)<=750?150:0;break;
+ case'zg':{const deck=livingFront(ai);const types=new Set(deck.map(cardBy).filter(Boolean).map(x=>x.type));types.delete(c.type);bonus.atk=bonus.def=Math.min(2,types.size)*100;break;}
+ case'zg-exile':bonus.atk=m.chain*100;bonus.def=currentHP(c,ai)<=750?150:0;break;
  case'yanis-vs-zg':bonus.atk=m.charge;bonus.def=m.exposed?-100:0;break;
  case'yanis-soldat':bonus.def=m.trauma*100;break;
  case'abde-yanis':bonus.atk=m.time*150;break;
@@ -34,7 +34,8 @@ function passiveStats(c,ai=false){
  return bonus;
 }
 function battleCard(c,ai=false){const p=passiveStats(c,ai),b=battle.boost[(ai?'ai:':'')+c.id]||{};return {...c,atk:c.atk+(b.atk||0)+p.atk,def:c.def+(b.def||0)+p.def};}
-function passiveHeal(c,amount,ai){const hp=ai?'ehp':'php';if(battle[hp]<=0)return;const healed=Math.min(amount,4000-battle[hp]);battle[hp]+=healed;if(healed)passiveLog(c,`récupère ${healed} PV.`,ai);}
+function passiveHeal(c,amount,ai=false){const unit=combatUnit(c,ai);if(!unit||unit.hp<=0)return 0;const healed=Math.max(0,Math.min(amount,unit.maxHp-unit.hp));unit.hp+=healed;syncBattleTotals();if(healed)passiveLog(c,`récupère ${healed} PV.`,ai);return healed;}
+
 function prepareDoses(c,amount,ai){const m=passiveMemory(c,ai),gain=Math.min(amount,3-m.produced);if(gain>0){m.produced+=gain;m.doses+=gain;passiveLog(c,`prépare ${gain} dose(s), ${m.produced}/3 produites.`,ai);}}
 function passiveAction(c,action,ai=false){
  if(!passiveFor(c))return;const m=passiveMemory(c,ai);
@@ -64,17 +65,17 @@ function passiveAfterAttack(c,defender,ai=false){
  case'tom-u6':if(m.doses){m.doses--;passiveLog(c,`consomme une dose ; ${m.doses} en réserve.`,ai);passiveHeal(c,100,ai);}break;
  }
 }
-function takeBattleDamage(ai,amount){
- const c=cardBy(ai?battle.enemy:battle.player),m=passiveMemory(c,ai),hp=ai?'ehp':'php';let loss=Math.max(0,Math.round(amount));if(!loss)return 0;
+function takeBattleDamage(ai,amount,targetId=null){
+ const c=cardBy(targetId||(ai?battle.enemy:battle.player)),m=passiveMemory(c,ai),unit=combatUnit(c,ai);if(!unit||unit.hp<=0)return 0;let loss=Math.max(0,Math.round(amount));if(!loss)return 0;
  if(c.id==='yanis-soldat'&&m.hits<2){const absorbed=Math.min(loss,200);loss-=absorbed;m.hits++;passiveLog(c,`Hypervigilance absorbe ${absorbed} PV (${m.hits}/2).`,ai);}
  if(m.shield){const absorbed=Math.min(loss,m.shield);loss-=absorbed;m.shield=0;passiveLog(c,`son bouclier absorbe ${absorbed} PV, puis disparaît.`,ai);}
- loss=Math.min(loss,battle[hp]);battle[hp]-=loss;
+ loss=Math.min(loss,unit.hp);unit.hp-=loss;syncBattleTotals();
  if(loss>0&&c.id==='ayman'&&m.vestiges<3){m.vestiges++;passiveLog(c,`conserve un vestige de puissance : ${m.vestiges}/3.`,ai);}
  if(loss>0&&c.id==='yanis-soldat'&&m.trauma<3){m.trauma++;passiveLog(c,`s’endurcit : +${m.trauma*100} DEF.`,ai);}
  if(loss>0&&c.id==='yanis-vs-zg'){m.charge=Math.min(300,m.charge+Math.floor(loss*.25));passiveLog(c,`l’armure emmagasine ${m.charge}/300 ATK.`,ai);}
  return loss;
 }
-function passiveDetail(c){const p=passiveFor(c);return p?`<section class="passive-detail"><div class="eyebrow">PASSIF · AUTOMATIQUE</div><h3>✦ ${esc(p.name)}</h3><p>${esc(p.text)}</p><small>Se déclenche pour la carte active, sans consommer d’action supplémentaire. Les bonus et réserves repartent à zéro à chaque nouveau duel.</small></section>`:'';}
+function passiveDetail(c){const p=passiveFor(c);return p?`<section class="passive-detail"><div class="eyebrow">PASSIF · AUTOMATIQUE</div><h3>✦ ${esc(p.name)}</h3><p>${esc(p.text)}</p><small>Se déclenche pour le combattant concerné, sans consommer d’action supplémentaire. Les bonus et réserves repartent à zéro à chaque nouveau duel.</small></section>`:'';}
 function passiveStatus(c,ai=false){
  const m=passiveMemory(c,ai),p=passiveStats(c,ai);let labels=[];
  if(p.atk)labels.push(`${p.atk>0?'+':''}${p.atk} ATK`);if(p.def)labels.push(`${p.def>0?'+':''}${p.def} DEF`);

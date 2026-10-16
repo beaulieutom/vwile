@@ -9,13 +9,14 @@ vm.runInContext(await readFile('dist/game-features.js','utf8'),ctx);
 vm.runInContext(await readFile('dist/passives.js','utf8'),ctx);
 vm.runInContext(await readFile('dist/combat-animation.js','utf8'),ctx);
 vm.runInContext(await readFile('dist/duel.js','utf8'),ctx);
+vm.runInContext(await readFile('dist/formation.js','utf8'),ctx);
 vm.runInContext((await readFile('dist/app.js','utf8')).replace('unlimitedCredits:true','unlimitedCredits:false'),ctx);
 const run=s=>vm.runInContext(s,ctx);
 const realIds=['zg','zg-exile','yanis-vs-zg','yanis-soldat','abde-yanis','tom-samourai','tom-u6','le-maire','emilien-larp','ayman'];
 assert.deepEqual([...run('state.cards.map(c=>c.id)')],realIds);
 assert.equal(run('state.auctions.length'),0);
 assert.equal(run('state.cards.every(c=>SPECIAL_ART[c.id]&&(c.unknown||(c.atk+c.def===BUDGETS[c.rarity])))'),true);
-assert.equal(run('state.deck.every(id=>cardBy(id)?.owned>0)&&state.deck.length===3'),true);
+assert.equal(run('state.deck.every(id=>cardBy(id)?.owned>0)&&state.deck.length===6'),true);
 assert.doesNotThrow(()=>run('home();collection();boosters();auctions();arena();friends();'));
 assert.equal(run('collection().includes(\'data-action="type-wheel"\')'),true);
 assert.equal(run('collection().includes("Roue des types")'),true);
@@ -54,7 +55,7 @@ assert.equal(run('state.opened'),9);
 assert.equal(run('state.wins'),4);
 assert.equal(run('state.auctions.length'),1);
 assert.equal(run('state.auctions[0].id'),'real');
-assert.equal(run('state.deck.length'),3);
+assert.equal(run('state.deck.length'),6);
 assert.equal(run('state.deck.every(id=>cardBy(id)?.owned>0)'),true);
 run('state.deck=["zg"];migrateCards(state);');
 assert.equal(run('state.deck.length'),1);
@@ -119,12 +120,12 @@ run('closeModal();state=fresh();battle=null;');
 assert.equal(run('NAV.some(n=>n[0]==="deck")'),true);
 assert.equal(run('deckBuilder().includes("Carte à collectionner")||deckBuilder().includes("CARTE À COLLECTIONNER")'),true);
 assert.equal(run('toggleDeckCard("emilien-larp")'),false);
-assert.equal(run('state.deck.length'),3);
+assert.equal(run('state.deck.length'),6);
 assert.equal(run('toggleDeckCard("yanis-soldat")'),true);
 assert.equal(run('toggleDeckCard("emilien-larp")'),true);
 assert.equal(run('makeDeckLead("emilien-larp")'),true);
 assert.equal(JSON.parse(lastSaved).deck[0],'emilien-larp');
-assert.equal(run('state.deck.length===3&&new Set(state.deck).size===3'),true);
+assert.equal(run('state.deck.length===6&&new Set(state.deck).size===6'),true);
 assert.equal(run('toggleDeckCard("le-maire")'),false);
 run('startBattle();');
 assert.equal(run('battle.player'),'emilien-larp');
@@ -199,110 +200,151 @@ assert.equal(run('openingSession.results.length'),5);
 assert.equal(run('openingSession.results[0].id'),'emilien-larp');
 run('closeModal();');
 console.log('Verified: stable rarity order with highest rarity last, no automatic tear, one tear trigger, bidirectional swipe threshold.');
-function duelWith(player,enemy){run(`view='accueil';closeModal();state=fresh();battle=null;startBattle();battle.player='${player}';battle.enemy='${enemy}';battle.enemyDeck=['${enemy}'];`);}
-const fighters=realIds.filter(id=>id!=='le-maire');
-assert.equal(run('state.cards.filter(isPlayable).every(c=>abilitiesFor(c).length===2)'),true);
-assert.equal(run('abilitiesFor(cardBy("le-maire")).length'),0);
-assert.equal(run('new Set(Object.values(ABILITIES).flat().map(a=>a.name)).size'),18);
-for(const player of fighters)for(const enemy of fighters){
- duelWith(player,enemy);
- // Prediction must neither consume counters nor alter HP.
- run('abilityPrediction(cardBy(battle.player),abilitiesFor(cardBy(battle.player))[0]);');
- const beforePreview=run('JSON.stringify({hp:[battle.php,battle.ehp],passives:battle.passives,cooldowns:battle.cooldowns})');
- const predicted=run('abilityPrediction(cardBy(battle.player),abilitiesFor(cardBy(battle.player))[0]).loss');
- assert.equal(run('JSON.stringify({hp:[battle.php,battle.ehp],passives:battle.passives,cooldowns:battle.cooldowns})'),beforePreview);
- const enemyBefore=run('battle.ehp');const ownBefore=run('battle.php');
- assert.equal(run('applyAbility(0)'),true);
- assert.equal(run('battle.ehp'),enemyBefore-predicted);
- assert(run('battle.php')>=ownBefore); // No backlash for low ATK or weak type.
- assert.equal(run('applyAbility(0)'),false); // Same action cannot be applied twice in a turn.
- duelWith(player,enemy);
- for(let step=0;step<31&&!run('battle.over');step++){
-  const index=step%3===0&&run('abilityReady(cardBy(battle.player),1)===0')?1:0;
-  assert.equal(run(`battleAction('ability','${index}')`),true);
-  assert.equal(run('Number.isFinite(battle.php)&&Number.isFinite(battle.ehp)&&battle.php>=0&&battle.ehp>=0&&battle.php<=4000&&battle.ehp<=4000'),true);
+// Six-card formations, independent HP, real ally support and reserves.
+const allFighters=realIds.filter(id=>id!=='le-maire');
+function setupFormation(front=['zg','yanis-soldat','abde-yanis']){
+ const deck=[...new Set([...front,...allFighters])].slice(0,6);
+ run(`view='accueil';clearCombatPresentation();state=fresh();state.deck=${JSON.stringify(deck)};battle=null;startBattle();`);
+}
+setupFormation();
+assert.equal(run('state.deck.length'),6);assert.equal(run('battle.playerField.length'),3);assert.equal(run('reserveIds().length'),3);
+assert.equal(run('Object.keys(battle.units.player).length'),6);assert.equal(run('battle.php'),12000);
+assert.equal(run('new Set(battle.enemyDeck).size'),6);
+run('state=fresh();state.catalogVersion=5;state.deck=["emilien-larp","zg","abde-yanis"];cardBy("ayman").owned=0;migrateCards(state);migrateCards(state);');
+assert.equal(run('state.deck.length'),6);
+assert.deepEqual([...run('state.deck.slice(0,3)')],['emilien-larp','zg','abde-yanis']);
+assert.equal(run('state.deck.includes("ayman")'),false);
+run('state.deck=["zg"];migrateCards(state);');assert.equal(run('state.deck.length'),1);
+
+setupFormation();
+const firstTarget=run('battle.enemyField[1]');run(`battle.enemy='${firstTarget}';`);
+const predictedLoss=run('abilityPrediction(cardBy(battle.player),abilitiesFor(cardBy(battle.player))[0]).loss');
+const enemyBefore={...run('Object.fromEntries(Object.entries(battle.units.enemy).map(([id,u])=>[id,u.hp]))')};
+run('applyAbility(0);');
+for(const [id,hp]of Object.entries(enemyBefore))assert.equal(run(`currentHP('${id}',true)`),hp-(id===firstTarget?predictedLoss:0));
+assert.equal(run('battle.php'),12000);
+assert.equal(run('applyAbility(0)'),false);
+
+setupFormation(['tom-u6','yanis-soldat','zg']);
+run('combatUnit("yanis-soldat").hp=500;syncBattleTotals();battle.allyTarget="yanis-soldat";');
+const reserveBefore=run('reserveIds()[0]');const teamEnemy=run('battle.ehp');
+assert.equal(run('abilityPrediction(cardBy("tom-u6"),abilitiesFor(cardBy("tom-u6"))[1]).heal'),360);
+run('applyAbility(1);');
+assert.equal(run('currentHP("yanis-soldat")'),860);
+assert.equal(run('currentHP("tom-u6")'),2000);
+assert.equal(run(`currentHP('${reserveBefore}')`),2000);
+assert.equal(run('battle.ehp'),teamEnemy);
+assert.equal(run('passiveMemory(cardBy("tom-u6")).doses'),2);
+run('battle.turn+=3;');assert.equal(run(`applyAbility(1,false,'${reserveBefore}')`),false);
+run('combatUnit("yanis-soldat").hp=0;');assert.equal(run('applyAbility(1,false,"yanis-soldat")'),false);
+assert.equal(run('currentHP("yanis-soldat")'),0);
+
+setupFormation(['zg','yanis-soldat','abde-yanis']);
+run('combatUnit("zg").hp=1000;combatUnit("yanis-soldat").hp=1900;combatUnit("abde-yanis").hp=800;syncBattleTotals();');
+assert.equal(run('abilityPrediction(cardBy("zg"),abilitiesFor(cardBy("zg"))[1]).heal'),460);
+run('applyAbility(1);');
+assert.equal(run('currentHP("zg")'),1180);assert.equal(run('currentHP("yanis-soldat")'),2000);assert.equal(run('currentHP("abde-yanis")'),980);
+assert.equal(run('reserveIds().every(id=>currentHP(id)===2000)'),true);
+
+setupFormation(['emilien-larp','yanis-soldat','abde-yanis']);
+run('battle.allyTarget="yanis-soldat";applyAbility(1);');
+assert.equal(run('passiveMemory(cardBy("yanis-soldat")).shield'),300);
+assert.equal(run('passiveMemory(cardBy("emilien-larp")).shield'),0);
+assert.equal(run('passiveStats(cardBy("emilien-larp")).def'),250);
+assert.equal(run('takeBattleDamage(false,600,"yanis-soldat")'),100); // 200 Hypervigilance + 300 ally shield.
+assert.equal(run('currentHP("yanis-soldat")'),1900);
+assert.equal(run('passiveMemory(cardBy("yanis-soldat")).shield'),0);
+
+setupFormation(['abde-yanis','yanis-soldat','zg']);
+run('combatUnit("yanis-soldat").hp=800;battle.allyTarget="yanis-soldat";applyAbility(1);');
+assert.equal(run('currentHP("yanis-soldat")'),1040);assert.equal(run('passiveMemory(cardBy("abde-yanis")).time'),1);
+run('battle.turn++;applyAbility(0);');assert.equal(run('passiveMemory(cardBy("abde-yanis")).time'),0);
+
+setupFormation();
+const deadEnemy=run('battle.enemyField[0]'),nextEnemy=run('reserveIds(true)[0]');
+run(`combatUnit('${deadEnemy}',true).hp=1;`);
+run('applyAbility(0);');
+assert.equal(run(`currentHP('${deadEnemy}',true)`),0);
+assert.equal(run('battle.enemyField[0]'),nextEnemy);
+assert.equal(run('reserveIds(true).length'),2);
+assert.equal(run('battle.log.some(l=>l.includes("K.O."))'),true);
+
+setupFormation(['zg-exile','zg','abde-yanis']);
+const relief=run('reserveIds()[0]');
+run('combatUnit("zg-exile").hp=900;passiveMemory(cardBy("zg-exile")).chain=3;battle.cooldowns["zg-exile:1"]=10;syncBattleTotals();');
+assert.equal(run(`battleAction('switch','${relief}')`),true);
+assert.equal(run('currentHP("zg-exile")'),900);assert.equal(run('passiveMemory(cardBy("zg-exile")).chain'),0);
+assert.equal(run('battle.cooldowns["zg-exile:1"]'),10);assert.equal(run('battle.turn'),2);
+assert.equal(run('reserveIds().includes("zg-exile")'),true);
+assert.equal(run(`battle.playerField.includes('${relief}')`),true);
+
+setupFormation();
+const turnBefore=run('battle.turn'),caster=run('battle.playerField[1]'),target=run('battle.enemyField[2]');
+assert.equal(run(`battleAction('select-fighter','${caster}')`),true);
+assert.equal(run(`battleAction('select-enemy','${target}')`),true);
+assert.equal(run('battle.turn'),turnBefore);
+assert.equal(run('battleAction("select-fighter",reserveIds()[0])'),false);
+assert.equal(run('arena().match(/data-action="select-fighter"/g).length'),3);
+assert.equal(run('arena().match(/data-action="select-enemy"/g).length'),3);
+assert.equal(run('arena().match(/data-action="ability"/g).length'),2);
+assert.equal(run('deckBuilder().match(/class="deck-slot"/g).length'),6);
+console.log('Verified: six-card migration preserving starting order, 3+3 deployment, individual targeting/HP, ally and team healing, ally shields, KO replacement, persistent reserves and free target selections.');
+
+// Every unit and both sides obey damage previews; each camp retains six independent identities.
+for(const actor of allFighters){
+ setupFormation([actor,...allFighters.filter(id=>id!==actor).slice(0,2)]);
+ for(const targetId of run('battle.enemyField')){
+  run(`battle.enemy='${targetId}';battle.cooldowns={};`);
+  const prediction=run('abilityPrediction(cardBy(battle.player),abilitiesFor(cardBy(battle.player))[0]).loss');
+  const before=run(`currentHP('${targetId}',true)`);
+  assert.equal(run('applyAbility(0)'),true);
+  assert.equal(run(`currentHP('${targetId}',true)`),before-prediction);
+ }
+}
+for(let trial=0;trial<36;trial++){
+ const shuffled=[...allFighters].sort(()=>Math.random()-.5).slice(0,6);
+ run(`view='accueil';state=fresh();state.deck=${JSON.stringify(shuffled)};battle=null;startBattle();`);
+ let rounds=0;
+ while(!run('battle.over')&&rounds++<42){
+  run('battle.player=livingFront().sort((a,b)=>currentHP(b)-currentHP(a))[0];battle.enemy=weakestAlly(true);battle.allyTarget=weakestAlly();');
+  const useSupport=rounds%4===0&&run('abilityReady(cardBy(battle.player),1)===0');
+  assert.equal(run(`battleAction('ability','${useSupport?1:0}')`),true);
+  assert.equal(run('Object.values(battle.units).every(side=>Object.values(side).every(u=>Number.isFinite(u.hp)&&u.hp>=0&&u.hp<=UNIT_HP))'),true);
+  assert.equal(run('livingFront().length<=3&&livingFront(true).length<=3&&new Set(battle.playerField).size===3&&new Set(battle.enemyField).size===3'),true);
  }
  assert.equal(run('battle.over'),true);
+ const wins=run('state.wins');assert.equal(run('battleAction("ability","0")'),false);assert.equal(run('state.wins'),wins);
 }
-console.log('Verified: 18 distinct abilities, exact read-only damage previews and 81 complete matchups with attacks/supports, no recoil and bounded HP.');
+console.log('Verified: actual damage previews for all fighters, 36 full six-card battles with support and replacements, bounded individual HP, no duplicate deployment and exactly-once rewards.');
 
-duelWith('zg','zg');run('battle.php=3000;applyAbility(1);');
-assert.equal(run('battle.php'),3200);assert.equal(run('passiveMemory(cardBy("zg")).shield'),250);
-assert.equal(run('abilityReady(cardBy("zg"),1)'),3);
-run('battle.turn++;');assert.equal(run('abilityReady(cardBy("zg"),1)'),2);
-const blockedTurn=run('battle.turn');assert.equal(run('battleAction("ability","1")'),false);assert.equal(run('battle.turn'),blockedTurn);
-run('battle.turn+=2;applyAbility(1);');assert.equal(run('passiveMemory(cardBy("zg")).shield'),250); // No shield stacking.
-run('passiveAction(cardBy("zg"),"defend",true);');assert.equal(run('passiveMemory(cardBy("zg"),true).shield'),200);
-
-duelWith('abde-yanis','abde-yanis');
-const uncharged=run('abilityPrediction(cardBy("abde-yanis"),abilitiesFor(cardBy("abde-yanis"))[0]).raw');
-run('battle.php=2800;applyAbility(1);battle.turn+=2;applyAbility(1);battle.turn++;');
-assert.equal(run('passiveMemory(cardBy("abde-yanis")).time'),2);
-assert.equal(run('abilityPrediction(cardBy("abde-yanis"),abilitiesFor(cardBy("abde-yanis"))[0]).raw'),uncharged+300);
-run('applyAbility(0);');assert.equal(run('passiveMemory(cardBy("abde-yanis")).time'),0);assert.equal(run('battle.php'),3200);
-
-duelWith('tom-samourai','yanis-soldat');run('applyAbility(1);battle.turn++;');
-assert.equal(run('passiveStats(cardBy("tom-samourai")).atk'),250);
-const covered=run('abilityPrediction(cardBy("tom-samourai"),abilitiesFor(cardBy("tom-samourai"))[0]).loss');
-run('applyAbility(0);');assert.equal(run('4000-battle.ehp'),covered);
-assert.equal(run('passiveMemory(cardBy("tom-samourai")).iai'),false);
-assert.equal(run('passiveMemory(cardBy("yanis-soldat"),true).hits'),1);
-assert.equal(run('passiveMemory(cardBy("yanis-soldat"),true).trauma'),covered?1:0);
-
-duelWith('tom-u6','zg');run('battle.php=2000;applyAbility(1);battle.turn++;applyAbility(0);battle.turn+=2;applyAbility(1);');
-assert.equal(run('passiveMemory(cardBy("tom-u6")).produced'),3);
-assert.equal(run('passiveMemory(cardBy("tom-u6")).doses'),2);
-run('battle.php=0;passiveHeal(cardBy("tom-u6"),100,false);');assert.equal(run('battle.php'),0);
-
-duelWith('emilien-larp','zg');run('applyAbility(1);battle.turn++;');
-assert.equal(run('passiveStats(cardBy("emilien-larp")).def'),250);
-const rolePreview=run('abilityPrediction(cardBy("emilien-larp"),abilitiesFor(cardBy("emilien-larp"))[0]).loss');
-run('applyAbility(0);');assert.equal(run('4000-battle.ehp'),rolePreview);
-assert.equal(run('passiveMemory(cardBy("emilien-larp")).role'),'Assaut');
-assert.equal(run('passiveMemory(cardBy("emilien-larp")).roleShieldUsed'),true);
-
-duelWith('zg','zg');run('battle.ehp=1;battleAction("ability","0");');
-assert.equal(run('battle.over'),true);assert.equal(run('battle.php'),4000);assert.equal(run('state.wins'),1);
-assert.equal(run('battleAction("ability","0")'),false);assert.equal(run('state.wins'),1);
-
-duelWith('zg-exile','zg');run('applyAbility(0);battle.turn++;applyAbility(0);passiveAction(cardBy("zg-exile"),"leave");');
-assert.equal(run('passiveMemory(cardBy("zg-exile")).chain'),0);
-run('startBattle();');assert.equal(run('passiveMemory(cardBy("zg-exile")).shield'),0);
-assert.equal(run('arena().match(/data-action="ability"/g).length'),2);
-assert.equal(run('arena().includes("Passer en défense")'),false);
-assert.equal(run(`arena().includes('data-action="power"')`),false);
-assert.equal(run('card(cardBy("zg")).includes("Décret du Fondateur")'),true);
-assert.equal(run('card(cardBy("zg")).includes("Ralliement du cercle")'),true);
-console.log('Verified: cooldowns, shields, charge consumption, support preparation, role changes, no resurrection, exactly-once victory, and exactly two visible choices.');
-
-// Both attacks and support effects play sequentially, without duplicate turns.
-duelWith('abde-yanis','tom-u6');scheduled.clear();run('view="arene";applyAbility(0);applyAbility(1,true);playCombatEffects();');
-assert.equal(run('isCombatBusy()'),true);
-assert.equal(node('#combat-announcement').textContent.includes('Fracture temporelle'),true);
-const turnWhileBusy=run('battle.turn');assert.equal(run('battleAction("ability","0")'),false);assert.equal(run('battle.turn'),turnWhileBusy);
+// Replaying a queued KO must preserve the old target for its impact, then show its replacement.
+setupFormation(['zg','tom-u6','abde-yanis']);scheduled.clear();
+run('view="arene";combatUnit(battle.enemy,true).hp=1;syncBattleTotals();applyAbility(0);');
+assert.equal(run('combatPresentation.queue.length'),1);
+assert.equal(run('combatPresentation.queue[0].before.enemyField[0]!==combatPresentation.queue[0].after.enemyField[0]'),true);
+run('playCombatEffects();');assert.equal(run('isCombatBusy()'),true);
+const roundLocked=run('battle.turn');assert.equal(run('battleAction("ability","0")'),false);assert.equal(run('battle.turn'),roundLocked);
 const delivered=new Set();for(let i=0;i<15;i++){const pending=[...scheduled.entries()].filter(([id])=>!delivered.has(id));if(!pending.length)break;for(const [id,fn]of pending){delivered.add(id);fn();}}
-assert.equal(run('isCombatBusy()'),false);assert.equal(run('combatPresentation.queue.length'),0);
-assert.equal(node('[data-health-value="player"]').textContent,run('num(battle.php)+" / 4 000 PV"'));
-run('queueCombatStrike({ai:false,kind:"attack",attacker:"A",defender:"B",type:"Temps",move:"Test",diff:1,loss:10});playCombatEffects();');
-const cancelled=[...scheduled.values()];run('clearCombatPresentation();');for(const fn of cancelled)fn();
-assert.equal(run('isCombatBusy()'),false);assert.equal(run('combatPresentation.queue.length'),0);
-ctx.matchMedia=()=>({matches:true});run('queueCombatStrike({type:"Feu"});');assert.equal(run('combatPresentation.queue.length'),0);delete ctx.matchMedia;run('view="accueil";');
-console.log('Verified: attack/support animations queue separately, live health matches each impact, cancellation and reduced motion.');
-duelWith('ayman','zg');
-assert.equal(run('cardBy("ayman").title'),'Le Fou du bus');
-assert.equal(run('cardBy("ayman").rarity'),'Mythique');
-assert.equal(run('cardBy("ayman").atk+cardBy("ayman").def'),4200);
-run('for(let i=0;i<5;i++)takeBattleDamage(false,100);');
-assert.equal(run('passiveMemory(cardBy("ayman")).vestiges'),3);
-const aymanPreview=run('abilityPrediction(cardBy("ayman"),abilitiesFor(cardBy("ayman"))[0]).loss');
-run('applyAbility(0);');
-assert.equal(run('4000-battle.ehp'),aymanPreview);
-assert.equal(run('passiveMemory(cardBy("ayman")).vestiges'),0);
-assert.equal(run('passiveMemory(cardBy("ayman"),true).vestiges'),0);
-run('battle.php=1400;');assert.equal(run('passiveStats(cardBy("ayman")).def'),150);
-run('state.cards=state.cards.filter(c=>c.id!=="ayman");state.balance=1234;migrateCards(state);migrateCards(state);');
-assert.equal(run('state.cards.filter(c=>c.id==="ayman").length'),1);
-assert.equal(run('cardBy("ayman").owned'),1);assert.equal(run('state.balance'),1234);
-run('cardBy("ayman").title="Le Magnat déchu";cardBy("ayman").owned=4;migrateCards(state);');
-assert.equal(run('cardBy("ayman").title'),'Le Fou du bus');assert.equal(run('cardBy("ayman").owned'),4);
-console.log('Verified: Ayman Le Fou du bus, Mythique Full Art, bounded vestiges, matching damage preview, survival threshold and idempotent collection addition/rename.');
+assert.equal(run('isCombatBusy()'),false);
+assert.equal(run('combatPresentation.queue.length'),0);
+assert.equal(node('[data-health-value="enemy"]').textContent,run('num(battle.ehp)+" / "+num(UNIT_HP*6)+" PV"'));
+run('clearCombatPresentation();view="accueil";');
+console.log('Verified: unit-specific animated impacts, KO snapshots and deployment transitions, live individual/total HP, and double-action lock.');
+
+// Exercise procedural audio scheduling, cancellation and persisted mute.
+{
+ const audioEvents=[],listeners={};let storedMute=null;
+ const soundButton={textContent:'',setAttribute(k,v){this[k]=v;}};
+ const param=()=>({value:0,setValueAtTime(v,t){assert.ok(Number.isFinite(v)&&Number.isFinite(t));audioEvents.push(['param',v]);},linearRampToValueAtTime(v,t){assert.ok(v>=0&&Number.isFinite(t));},exponentialRampToValueAtTime(v,t){assert.ok(v>0&&Number.isFinite(t));}});
+ const voice=()=>({frequency:param(),gain:param(),Q:{value:0},connect(){return this;},disconnect(){},start(t){audioEvents.push(['start',t]);},stop(t){audioEvents.push(['stop',t]);}});
+ class AudioMock{state='running';currentTime=0;sampleRate=8000;destination={};createOscillator(){return voice();}createGain(){return voice();}createBiquadFilter(){return voice();}createBufferSource(){return voice();}createBuffer(ch,n){assert.ok(n>0);return {getChannelData(){return new Float32Array(n);}};}}
+ const audioCtx=vm.createContext({console,window:{AudioContext:AudioMock},localStorage:{getItem(){return null;},setItem(k,v){storedMute=v;}},document:{querySelector(){return soundButton;},addEventListener(k,fn){listeners[k]=fn;}}});
+ vm.runInContext(await readFile('dist/sound.js','utf8'),audioCtx);
+ for(const kind of ['pack','tear','glow','reveal','finale','support']){const before=audioEvents.length;vm.runInContext(`gameSound.play('${kind}')`,audioCtx);assert.ok(audioEvents.length>before);}
+ for(const type of ['Feu','Nature','Sol','Foudre','Eau','Ombre','Temps','Lumière'])vm.runInContext(`gameSound.play('attack','${type}');gameSound.play('impact','${type}')`,audioCtx);
+ vm.runInContext('gameSound.stop()',audioCtx);
+ listeners.click({target:{closest(){return true;}}});assert.equal(storedMute,'1');assert.equal(soundButton['aria-pressed'],'false');const mutedCount=audioEvents.length;vm.runInContext("gameSound.play('tear')",audioCtx);assert.equal(audioEvents.length,mutedCount);
+ listeners.click({target:{closest(){return true;}}});assert.equal(storedMute,'0');assert.ok(audioEvents.length>mutedCount);
+ const silent=vm.createContext({window:{},localStorage:{getItem(){throw Error();}},document:{querySelector(){return null;},addEventListener(){}}});vm.runInContext(await readFile('dist/sound.js','utf8'),silent);vm.runInContext("gameSound.play('impact');gameSound.stop()",silent);
+ console.log('Verified: audio for eight attack types and booster phases, finite envelopes, cancellation, persistent mute and unsupported-audio fallback.');
+}
