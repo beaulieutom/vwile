@@ -6,7 +6,7 @@ function clearCombatPresentation(){
  combatPresentation={queue:[],timers:[],epoch:combatPresentation.epoch+1,busy:false,intro:null};
 }
 function combatTimer(fn,ms){const epoch=combatPresentation.epoch;combatPresentation.timers.push(setTimeout(()=>{if(combatPresentation.epoch===epoch)fn();},ms));}
-function lockCombatControls(locked){document.querySelectorAll('.battle-controls [data-action],.deck-picker [data-action="switch"]').forEach(button=>{if(locked){button.dataset.wasDisabled=button.disabled?'1':'0';button.disabled=true;}else{button.disabled=button.dataset.wasDisabled==='1';delete button.dataset.wasDisabled;}});}
+function lockCombatControls(locked){const phase=document.querySelector('.ability-panel>.eyebrow');if(phase){if(locked){phase.dataset.restingLabel=phase.textContent;phase.textContent='RÉSOLUTION EN COURS…';}else if(phase.dataset.restingLabel){phase.textContent=phase.dataset.restingLabel;delete phase.dataset.restingLabel;}}document.querySelectorAll('.battle-controls [data-action],.deck-picker [data-action="switch"]').forEach(button=>{if(locked){button.dataset.wasDisabled=button.disabled?'1':'0';button.disabled=true;}else{button.disabled=button.dataset.wasDisabled==='1';delete button.dataset.wasDisabled;}});}
 function startCombatIntro(){
  if(view!=='arene'||!battle||reducedCombatMotion())return;
  combatPresentation.busy=true;lockCombatControls(true);
@@ -25,27 +25,32 @@ function playCombatEffects(){
  combatPresentation.busy=true;lockCombatControls(true);
  const next=()=>{
   const event=combatPresentation.queue.shift();
-  if(!event){combatPresentation.busy=false;lockCombatControls(false);return;}
+  if(!event){combatPresentation.busy=false;lockCombatControls(false);if(battle)presentCombatHealth(battle);const banner=document.querySelector('#combat-announcement');if(banner)banner.textContent=battle?.over?battle.result:`Tour ${battle.turn} · À toi de jouer. Choisis une des deux capacités.`;return;}
   const source=document.querySelector(`[data-combat-side="${event.ai?'enemy':'player'}"]`);
   const defender=document.querySelector(`[data-combat-side="${event.ai?'player':'enemy'}"]`);
-  const target=event.diff<0?source:defender;
+  const support=event.kind==='support';
+  const target=support?source:event.diff<0?source:defender;
+  if(event.before)presentCombatHealth(event.before);
   const banner=document.querySelector('#combat-announcement');
   if(!source||!defender||!target){combatPresentation.busy=false;combatPresentation.queue=[];lockCombatControls(false);return;}
   const color=COLORS[event.type]||'#e1d9ef';
   for(const node of [source,defender,target])node.style.setProperty('--impact-color',color);
-  if(banner){banner.style.setProperty('--impact-color',color);banner.textContent=`${event.ai?'LE CERCLE':'TOI'} · ${event.attacker} attaque ${event.defender} · ${TYPE_ICONS[event.type]||'✦'} ${event.type}`;banner.classList.add('announcing');}
-  source.classList.add('combat-attacking');
+  if(banner){banner.style.setProperty('--impact-color',color);banner.textContent=`${event.ai?'LE CERCLE':'TOI'} · ${event.attacker} utilise ${event.move||'son attaque'}${support?'':` sur ${event.defender}`} · ${TYPE_ICONS[event.type]||'✦'} ${event.type}`;banner.classList.add('announcing');}
+  source.classList.add(support?'combat-supporting':'combat-attacking');
   combatTimer(()=>{
-   target.querySelector('.impact-symbol').textContent=TYPE_ICONS[event.type]||'✦';
-   target.querySelector('.combat-damage').textContent=event.loss?`−${num(event.loss)} PV`:event.diff===0?'PARADE':'ABSORBÉ';
-   target.classList.add('combat-hit');
+   target.querySelector('.impact-symbol').textContent=support?'▱':TYPE_ICONS[event.type]||'✦';
+   if(event.after)presentCombatHealth(event.after);
+   target.querySelector('.combat-damage').textContent=support?event.effectLabel:event.loss?`−${num(event.loss)} PV`:'ABSORBÉ';
+   target.classList.add(support?'combat-aided':'combat-hit');
    if(event.diff<=0)defender.classList.add('combat-guarding');
   },280);
   combatTimer(()=>{
-   source.classList.remove('combat-attacking');target.classList.remove('combat-hit');defender.classList.remove('combat-guarding');
+   source.classList.remove('combat-attacking','combat-supporting');target.classList.remove('combat-hit','combat-aided');defender.classList.remove('combat-guarding');
    banner?.classList.remove('announcing');
    combatTimer(next,130);
   },1100);
  };
  next();
 }
+
+function presentCombatHealth(hp){for(const [side,value] of [['player',hp.php],['enemy',hp.ehp]]){const label=document.querySelector(`[data-health-value="${side}"]`),bar=document.querySelector(`[data-health-bar="${side}"]`);if(label)label.textContent=num(value)+' / 4 000 PV';if(bar)bar.style.width=(value/40)+'%';}}

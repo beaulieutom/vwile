@@ -1,19 +1,19 @@
 // Automatic, bounded passives. Active powers remain independent of these rules.
 const PASSIVES={
- zg:{name:'Pacte du Fondateur',short:'La diversité du cercle renforce ZG.',text:'Tant que ZG est actif : +100 ATK et DEF par autre type présent dans son deck (maximum +200). Sa première posture défensive du duel crée un bouclier de 200 PV, absorbé au prochain dégât subi par ZG.'},
+ zg:{name:'Pacte du Fondateur',short:'La diversité du cercle renforce ZG.',text:'Tant que ZG est actif : +100 ATK et DEF par autre type présent dans son deck (maximum +200). Sa première capacité défensive du duel crée un bouclier de 200 PV, absorbé au prochain dégât subi par ZG.'},
  'zg-exile':{name:'Marche des dunes',short:'Les attaques successives nourrissent l’exil.',text:'Chaque attaque de ZG Exilé prépare +100 ATK pour les suivantes, jusqu’à +300. Quitter le terrain remet cette progression à zéro. À 1 500 PV ou moins, il gagne aussi +150 DEF.'},
- 'yanis-vs-zg':{name:'La dette de l’armure',short:'Encaisse, charge l’armure, puis riposte.',text:'25 % des PV réellement perdus chargent l’armure (maximum 300). Sa prochaine attaque gagne autant d’ATK, puis vide la charge. Chaque attaque l’expose à −100 DEF, sans cumul, jusqu’à sa prochaine posture défensive.'},
+ 'yanis-vs-zg':{name:'La dette de l’armure',short:'Encaisse, charge l’armure, puis riposte.',text:'25 % des PV réellement perdus chargent l’armure (maximum 300). Sa prochaine attaque gagne autant d’ATK, puis vide la charge. Chaque attaque l’expose à −100 DEF, sans cumul, jusqu’à sa prochaine capacité défensive.'},
  'yanis-soldat':{name:'Hypervigilance',short:'Chaque impact devient une leçon de survie.',text:'Les deux premiers dégâts que subit Yanis sont réduits de 200 PV chacun. Chaque impact qui lui retire encore des PV lui donne +100 DEF pour le reste du duel, jusqu’à +300. Les impacts entièrement absorbés ne le renforcent pas.'},
- 'abde-yanis':{name:'La salle hors du temps',short:'Défends pour stocker le temps. Attaque pour le libérer.',text:'Chaque posture défensive stocke une charge de temps (maximum 2). Leur prochaine attaque consomme toutes les charges : +150 ATK et soin de 100 PV par charge. Les charges restent en réserve lors d’un changement de carte.'},
+ 'abde-yanis':{name:'La salle hors du temps',short:'Défends pour stocker le temps. Attaque pour le libérer.',text:'Chaque capacité défensive stocke une charge de temps (maximum 2). Leur prochaine attaque consomme toutes les charges : +150 ATK et soin de 100 PV par charge. Les charges restent en réserve lors d’un changement de carte.'},
  'tom-samourai':{name:'Iaï des pétales rosés',short:'Une garde patiente prépare la lame.',text:'Défendre prépare un Iaï : +250 ATK pour la prochaine attaque, sans cumul. Si cette attaque possède l’avantage de type, Tom gagne ensuite un bouclier de 150 PV, absorbé au prochain dégât qu’il subit. Un nouveau bouclier remplace le précédent.'},
- 'tom-u6':{name:'Protocole de peptidance',short:'Prépare tes doses, puis déclenche la réaction.',text:'Une défense prépare 1 dose et son pouvoir actif en prépare 2 : seulement 3 doses peuvent être produites par duel. Chaque attaque consomme 1 dose pour +150 ATK et un soin de 100 PV. Les doses inutilisées restent en réserve lors d’un changement.'},
- 'emilien-larp':{name:'Les mille rôles du Larp',short:'Assaut ou Gardien : incarne ton prochain rôle.',text:'Emilien commence en rôle Assaut : +200 ATK. Défendre le fait passer en Gardien : +250 DEF à la place. Son pouvoir actif le remet en Assaut et lui donne un bouclier de 100 PV. Le rôle est conservé quand il quitte le terrain.'}
+ 'tom-u6':{name:'Protocole de peptidance',short:'Prépare tes doses, puis déclenche la réaction.',text:'Protocole U6 prépare 2 doses : seulement 3 doses peuvent être produites par duel. Chaque attaque consomme 1 dose pour +150 ATK et un soin de 100 PV. Les doses inutilisées restent en réserve lors d’un changement.'},
+ 'emilien-larp':{name:'Les mille rôles du Larp',short:'Assaut ou Gardien : incarne ton prochain rôle.',text:'Emilien commence en rôle Assaut : +200 ATK. Défendre le fait passer en Gardien : +250 DEF à la place. Attaquer le remet en Assaut. Une seule fois par duel, revenir en Assaut après Gardien lui donne un bouclier de 100 PV. Le rôle est conservé quand il quitte le terrain.'}
 };
 function passiveFor(c){return !c?.unknown?PASSIVES[c?.id]:null;}
 function passiveMemory(c,ai=false){
  if(!battle)return {};
  battle.passives||={};const key=(ai?'ai:':'')+c.id;
- return battle.passives[key]||=( {chain:0,charge:0,exposed:false,hits:0,trauma:0,time:0,iai:false,doses:0,produced:0,role:'Assaut',shield:0,founderGuard:false} );
+ return battle.passives[key]||=( {chain:0,charge:0,exposed:false,hits:0,trauma:0,time:0,iai:false,doses:0,produced:0,role:'Assaut',roleShieldUsed:false,shield:0,founderGuard:false} );
 }
 function passiveLog(c,message,ai){battle.log.push(`✦ ${ai?'IA':'Toi'} · ${c.name} — ${message}`);}
 function passiveStats(c,ai=false){
@@ -44,9 +44,10 @@ function passiveAction(c,action,ai=false){
   if(c.id==='tom-u6')prepareDoses(c,1,ai);
   if(c.id==='emilien-larp'&&m.role!=='Gardien'){m.role='Gardien';passiveLog(c,'incarne le Gardien : +250 DEF.',ai);}
  }
+ if(action==='attack'&&c.id==='emilien-larp'){if(m.role==='Gardien'&&!m.roleShieldUsed){m.shield=Math.max(m.shield,100);m.roleShieldUsed=true;passiveLog(c,'revient en Assaut et crée son bouclier unique de 100 PV.',ai);}m.role='Assaut';}
  if(action==='power'){
   if(c.id==='tom-u6')prepareDoses(c,2,ai);
-  if(c.id==='emilien-larp'){m.role='Assaut';m.shield=100;passiveLog(c,'reprend le rôle Assaut et un bouclier de 100 PV.',ai);}
+
  }
  if(action==='leave'&&c.id==='zg-exile')m.chain=0;
 }
@@ -69,7 +70,7 @@ function takeBattleDamage(ai,amount){
  if(loss>0&&c.id==='yanis-vs-zg'){m.charge=Math.min(300,m.charge+Math.floor(loss*.25));passiveLog(c,`l’armure emmagasine ${m.charge}/300 ATK.`,ai);}
  return loss;
 }
-function passiveDetail(c){const p=passiveFor(c);return p?`<section class="passive-detail"><div class="eyebrow">PASSIF · AUTOMATIQUE</div><h3>✦ ${esc(p.name)}</h3><p>${esc(p.text)}</p><small>Se déclenche pour la carte active, sans utiliser son pouvoir. Les bonus et réserves repartent à zéro à chaque nouveau duel.</small></section>`:'';}
+function passiveDetail(c){const p=passiveFor(c);return p?`<section class="passive-detail"><div class="eyebrow">PASSIF · AUTOMATIQUE</div><h3>✦ ${esc(p.name)}</h3><p>${esc(p.text)}</p><small>Se déclenche pour la carte active, sans consommer d’action supplémentaire. Les bonus et réserves repartent à zéro à chaque nouveau duel.</small></section>`:'';}
 function passiveStatus(c,ai=false){
  const m=passiveMemory(c,ai),p=passiveStats(c,ai);let labels=[];
  if(p.atk)labels.push(`${p.atk>0?'+':''}${p.atk} ATK`);if(p.def)labels.push(`${p.def>0?'+':''}${p.def} DEF`);
