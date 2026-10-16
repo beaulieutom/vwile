@@ -1,0 +1,33 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tests
+        run: node check.mjs
+
+      - name: Envoi de dist/ sur le VPS
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          echo "145.239.196.167 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILq52Jpy5IgVj/2iPoO5mat7NJ21yD8Xm94AIK9S7BLz" > ~/.ssh/known_hosts
+          # La clé est limitée côté serveur à rrsync dans /var/www/vwile : la destination est relative à ce dossier
+          rsync -az --delete -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" dist/ ubuntu@145.239.196.167:
+
+      - name: Vérification
+        run: curl -fsS -o /dev/null https://tcg.lustre-auto.fr/

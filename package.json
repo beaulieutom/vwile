@@ -1,1 +1,1 @@
-{"name":"vwile-tcg","version":"1.0.0","private":true,"scripts":{"dev":"node server.mjs","check":"node --check dist/app.js"}}
+{"name":"vwile-tcg","version":"1.0.0","private":true,"scripts":{"dev":"node server.mjs","check":"node --check dist/app.js","deploy":"bash deploy/deploy.sh","ship":"bash deploy/ship.sh"}}
