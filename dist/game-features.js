@@ -13,19 +13,29 @@ function clearBoosterOpening(){
 }
 function beginBoosterOpening(pack,cards){
  clearBoosterOpening();
- const session={id:++openingSequence,pack,results:structuredClone(cards),glow:boosterGlow(cards),timers:[],phase:'sealed',revealed:false,index:0,glowVisible:false};
+ const session={id:++openingSequence,pack,results:structuredClone(cards).sort((a,b)=>(rank[a.rarity]||0)-(rank[b.rarity]||0)),glow:boosterGlow(cards),timers:[],phase:'sealed',revealed:false,index:0,glowVisible:false};
  openingSession=session;
  const glow=session.glow;
  const baseColor={origines:"#b298f4",elite:"#e8bf67",duel:"#74bedb"}[pack.id]||"#b298f4";
- showModal(`<section class="booster-opening" id="booster-opening" style="--pack-color:${baseColor};--opening-color:${baseColor}"><div class="eyebrow">${esc(pack.name).toUpperCase()} · OUVERTURE #${state.opened}</div><h2>La légende est à l’intérieur.</h2><p id="opening-status" role="status">Un booster scellé. Cinq surprises.</p><div class="opening-stage" id="opening-stage" data-phase="sealed"><div class="opening-halo"></div><div class="opening-ring"></div><div class="opening-particles" aria-hidden="true">${Array.from({length:12},(_,i)=>`<i style="--angle:${i*30}deg;--particle-delay:${i*.12}s"></i>`).join('')}</div><div class="opening-pack"><div class="opening-light"></div><div class="opening-pack-top"></div><div class="opening-pack-body"><b>VWILE</b><small>TRADING CARD GAME</small><span class="opening-sigil">${pack.icon}</span><strong>${esc(pack.name).toUpperCase()}</strong><small>ORIGINES · 5 CARTES</small></div><div class="opening-seam"></div></div><div class="opening-burst"></div></div><button class="text-link skip-opening" data-action="reveal-pack">Passer l’animation →</button><small class="opening-save-note">Tes 5 cartes sont déjà sauvegardées dans ta collection.</small></section>`,'wide opening-dialog');
+ showModal(`<section class="booster-opening" id="booster-opening" style="--pack-color:${baseColor};--opening-color:${baseColor}"><div class="eyebrow">${esc(pack.name).toUpperCase()} · OUVERTURE #${state.opened}</div><h2>La légende est à l’intérieur.</h2><p id="opening-status" role="status">Glisse sur le haut du booster pour le déchirer.</p><div class="opening-stage" id="opening-stage" data-phase="sealed"><div class="opening-halo"></div><div class="opening-ring"></div><div class="opening-particles" aria-hidden="true">${Array.from({length:12},(_,i)=>`<i style="--angle:${i*30}deg;--particle-delay:${i*.12}s"></i>`).join('')}</div><div class="opening-pack"><div class="opening-light"></div><div class="opening-pack-top"></div><div class="tear-track" id="tear-track" aria-label="Balayer horizontalement pour déchirer le booster"><span>↔ GLISSE POUR OUVRIR</span><i></i></div><div class="opening-pack-body"><b>VWILE</b><small>TRADING CARD GAME</small><span class="opening-sigil">${pack.icon}</span><strong>${esc(pack.name).toUpperCase()}</strong><small>ORIGINES · 5 CARTES</small></div><div class="opening-seam"></div></div><div class="opening-burst"></div></div><button class="text-link tear-alternative" data-action="tear-pack">Déchirer le booster →</button><button class="text-link skip-opening" data-action="reveal-pack">Passer l’animation →</button><small class="opening-save-note">Tes 5 cartes sont déjà sauvegardées dans ta collection.</small></section>`,'wide opening-dialog');
  const reduced=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
  if(reduced){revealBoosterOpening(session.id);return;}
- const schedule=(delay,fn)=>session.timers.push(setTimeout(()=>{if(openingSession?.id===session.id&&!session.revealed&&!$('#modal').hidden)fn();},delay));
- schedule(2000,()=>{session.phase='tearing';$('#opening-stage').dataset.phase='tearing';$('#opening-status').textContent='Le haut du booster se déchire…';});
- schedule(3800,()=>{session.phase='glowing';session.glowVisible=true;$('#booster-opening').style.setProperty('--opening-color',glow.color);$('#opening-stage').dataset.phase='glowing';$('#opening-status').textContent='Une lueur s’échappe du booster…';});
- schedule(7000,()=>{session.phase='burst';$('#opening-stage').dataset.phase='burst';$('#opening-status').textContent='À toi de découvrir les cartes.';});
- schedule(8500,()=>revealBoosterOpening(session.id));
+ const track=$('#tear-track');let drag=null;
+ track.addEventListener('pointerdown',e=>{if(session.phase!=='sealed'||e.isPrimary===false||e.button>0)return;drag={x:e.clientX,width:track.getBoundingClientRect().width,id:e.pointerId};track.setPointerCapture?.(e.pointerId);});
+ track.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId||session.phase!=='sealed')return;const progress=packTearProgress(drag.x,e.clientX,drag.width);track.style.setProperty('--tear-progress',progress);if(progress>=1){drag=null;startBoosterTear();}});
+ const release=e=>{if(!drag||drag.id!==e.pointerId)return;drag=null;track.style.setProperty('--tear-progress',0);};
+ track.addEventListener('pointerup',release);track.addEventListener('pointercancel',release);track.addEventListener('lostpointercapture',release);
 }
+function packTearProgress(start,current,width){return Math.min(1,Math.abs(current-start)/Math.max(50,width*.6));}
+function startBoosterTear(){
+ const session=openingSession;if(!session||session.phase!=='sealed'||session.revealed)return false;
+ session.phase='tearing';$('#opening-stage').dataset.phase='tearing';$('#opening-status').textContent='Le haut du booster se déchire…';
+ const schedule=(delay,fn)=>session.timers.push(setTimeout(()=>{if(openingSession?.id===session.id&&!session.revealed&&!$('#modal').hidden)fn();},delay));
+ schedule(1800,()=>{session.phase='glowing';session.glowVisible=true;$('#booster-opening').style.setProperty('--opening-color',session.glow.color);$('#opening-stage').dataset.phase='glowing';$('#opening-status').textContent='Une lueur s’échappe du booster…';});
+ schedule(6500,()=>{session.phase='burst';$('#opening-stage').dataset.phase='burst';$('#opening-status').textContent='À toi de découvrir les cartes.';});
+ schedule(8000,()=>revealBoosterOpening(session.id));return true;
+}
+
 function revealBoosterOpening(id){
  const session=openingSession;
  if(!session||session.id!==id||session.revealed)return false;
