@@ -1,5 +1,6 @@
 // Automatic, bounded passives. Active powers remain independent of these rules.
 const PASSIVES={
+ ayman:{name:'Les restes du trône',short:'Une puissance perdue qui se réveille après les coups.',text:'Chaque impact qui retire réellement des PV à Ayman conserve un vestige de son ancienne puissance (maximum 3). Sa prochaine attaque consomme tous les vestiges : +100 ATK par vestige. À 1 500 PV ou moins, son instinct de survie lui donne aussi +150 DEF. Les vestiges restent en réserve lors d’une relève.'},
  zg:{name:'Pacte du Fondateur',short:'La diversité du cercle renforce ZG.',text:'Tant que ZG est actif : +100 ATK et DEF par autre type présent dans son deck (maximum +200). Sa première capacité défensive du duel crée un bouclier de 200 PV, absorbé au prochain dégât subi par ZG.'},
  'zg-exile':{name:'Marche des dunes',short:'Les attaques successives nourrissent l’exil.',text:'Chaque attaque de ZG Exilé prépare +100 ATK pour les suivantes, jusqu’à +300. Quitter le terrain remet cette progression à zéro. À 1 500 PV ou moins, il gagne aussi +150 DEF.'},
  'yanis-vs-zg':{name:'La dette de l’armure',short:'Encaisse, charge l’armure, puis riposte.',text:'25 % des PV réellement perdus chargent l’armure (maximum 300). Sa prochaine attaque gagne autant d’ATK, puis vide la charge. Chaque attaque l’expose à −100 DEF, sans cumul, jusqu’à sa prochaine capacité défensive.'},
@@ -13,13 +14,14 @@ function passiveFor(c){return !c?.unknown?PASSIVES[c?.id]:null;}
 function passiveMemory(c,ai=false){
  if(!battle)return {};
  battle.passives||={};const key=(ai?'ai:':'')+c.id;
- return battle.passives[key]||=( {chain:0,charge:0,exposed:false,hits:0,trauma:0,time:0,iai:false,doses:0,produced:0,role:'Assaut',roleShieldUsed:false,shield:0,founderGuard:false} );
+ return battle.passives[key]||=( {chain:0,charge:0,vestiges:0,exposed:false,hits:0,trauma:0,time:0,iai:false,doses:0,produced:0,role:'Assaut',roleShieldUsed:false,shield:0,founderGuard:false} );
 }
 function passiveLog(c,message,ai){battle.log.push(`✦ ${ai?'IA':'Toi'} · ${c.name} — ${message}`);}
 function passiveStats(c,ai=false){
  const bonus={atk:0,def:0};if(!battle||!passiveFor(c))return bonus;
  const m=passiveMemory(c,ai);
  switch(c.id){
+ case'ayman':bonus.atk=m.vestiges*100;bonus.def=(ai?battle.ehp:battle.php)<=1500?150:0;break;
  case'zg':{const deck=ai?battle.enemyDeck:state.deck;const types=new Set(deck.map(cardBy).filter(Boolean).map(x=>x.type));types.delete(c.type);bonus.atk=bonus.def=Math.min(2,types.size)*100;break;}
  case'zg-exile':bonus.atk=m.chain*100;bonus.def=(ai?battle.ehp:battle.php)<=1500?150:0;break;
  case'yanis-vs-zg':bonus.atk=m.charge;bonus.def=m.exposed?-100:0;break;
@@ -54,6 +56,7 @@ function passiveAction(c,action,ai=false){
 function passiveAfterAttack(c,defender,ai=false){
  if(!passiveFor(c))return;const m=passiveMemory(c,ai);
  switch(c.id){
+ case'ayman':if(m.vestiges){passiveLog(c,`libère ${m.vestiges} vestige(s) de son empire.`,ai);m.vestiges=0;}break;
  case'zg-exile':if(m.chain<3){m.chain++;passiveLog(c,`avance dans les dunes : +${m.chain*100} ATK pour ses prochaines attaques.`,ai);}break;
  case'yanis-vs-zg':m.exposed=true;passiveLog(c,'libère sa charge ; −100 DEF jusqu’à sa prochaine défense.',ai);break;
  case'abde-yanis':if(m.time){const n=m.time;m.time=0;passiveLog(c,`libère ${n} charge(s) de temps.`,ai);passiveHeal(c,n*100,ai);}break;
@@ -66,6 +69,7 @@ function takeBattleDamage(ai,amount){
  if(c.id==='yanis-soldat'&&m.hits<2){const absorbed=Math.min(loss,200);loss-=absorbed;m.hits++;passiveLog(c,`Hypervigilance absorbe ${absorbed} PV (${m.hits}/2).`,ai);}
  if(m.shield){const absorbed=Math.min(loss,m.shield);loss-=absorbed;m.shield=0;passiveLog(c,`son bouclier absorbe ${absorbed} PV, puis disparaît.`,ai);}
  loss=Math.min(loss,battle[hp]);battle[hp]-=loss;
+ if(loss>0&&c.id==='ayman'&&m.vestiges<3){m.vestiges++;passiveLog(c,`conserve un vestige de puissance : ${m.vestiges}/3.`,ai);}
  if(loss>0&&c.id==='yanis-soldat'&&m.trauma<3){m.trauma++;passiveLog(c,`s’endurcit : +${m.trauma*100} DEF.`,ai);}
  if(loss>0&&c.id==='yanis-vs-zg'){m.charge=Math.min(300,m.charge+Math.floor(loss*.25));passiveLog(c,`l’armure emmagasine ${m.charge}/300 ATK.`,ai);}
  return loss;
@@ -75,6 +79,7 @@ function passiveStatus(c,ai=false){
  const m=passiveMemory(c,ai),p=passiveStats(c,ai);let labels=[];
  if(p.atk)labels.push(`${p.atk>0?'+':''}${p.atk} ATK`);if(p.def)labels.push(`${p.def>0?'+':''}${p.def} DEF`);
  if(m.shield)labels.push(`Bouclier ${m.shield} PV`);
+ if(c.id==='ayman')labels.push(`Vestiges ${m.vestiges}/3`);
  if(c.id==='abde-yanis')labels.push(`Temps ${m.time}/2`);
  if(c.id==='tom-u6')labels.push(`Doses ${m.doses} · produites ${m.produced}/3`);
  if(c.id==='yanis-soldat')labels.push(`Protections ${2-m.hits}/2`);

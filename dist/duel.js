@@ -1,4 +1,5 @@
 const ABILITIES={
+ ayman:[{name:'Vestige d’empire',damage:790,text:'Rallume son ancienne puissance et consomme ses vestiges pour renforcer l’attaque.'},{name:'Survivre à la nuit',heal:220,guard:220,cooldown:2,text:'Reprend des forces et s’abrite derrière un bouclier au prochain impact.'}],
  zg:[{name:'Décret du Fondateur',damage:780,text:'Frappe renforcée par la diversité de ton cercle.'},{name:'Ralliement du cercle',heal:200,guard:250,cooldown:2,text:'Restaure les PV de l’équipe et protège ZG au prochain impact.'}],
  'zg-exile':[{name:'Lame des dunes',damage:850,text:'Une frappe qui fait progresser la Marche des dunes.'},{name:'Tempête de l’exil',damage:620,guard:150,cooldown:1,text:'Attaque puis gagne un bouclier de 150 PV.'}],
  'yanis-vs-zg':[{name:'Entaille maudite',damage:760,text:'Libère la charge de l’armure. Expose ensuite sa défense.'},{name:'Serment de fer',guard:300,charge:100,cooldown:1,text:'Referme la brèche, protège et charge l’armure de 100 ATK.'}],

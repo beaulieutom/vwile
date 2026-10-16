@@ -232,3 +232,17 @@
 .tcg-card.full-art .card-top>.type-badge{justify-self:start;font-size:clamp(6.5px,3.8cqw,9px);line-height:1.1;padding:3px 3px;letter-spacing:0;border-radius:3px;max-width:100%}
 .tcg-card.full-art .card-top>.card-rarity-pill{justify-self:end;font-size:clamp(6px,3.4cqw,9px);line-height:1.1;padding:3px 3px;letter-spacing:0;border-radius:3px;max-width:100%}
 @media(max-width:650px){.deck-slot .tcg-card.full-art .card-top{inset:2.5% 4% auto;gap:2px}.deck-slot .tcg-card.full-art .card-top>.type-badge{font-size:6px;padding:2px}.deck-slot .tcg-card.full-art .card-top>.card-rarity-pill{font-size:5.5px;padding:2px}}
+/* Individual portrait crops keep faces in the unobstructed upper artwork. */
+.portrait .card-photo-backdrop,.auction-thumb .card-photo-backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;pointer-events:none}.card-art-window{position:relative;width:100%;height:100%;overflow:hidden}.card-art-window>.card-photo{width:100%;height:100%;display:block;object-fit:cover}.tcg-card.full-art>.portrait>.card-art-window{height:64%}.tcg-card.full-art .card-art-window>.card-photo{object-fit:cover;transform-origin:50% 30%}
+.tcg-card.full-art .card-art-window>.photo-zg{object-position:62% 72%}
+.tcg-card.full-art .card-art-window>.photo-zg-exile{object-position:70% 12%;transform:scale(1.4);transform-origin:70% 30%}
+.tcg-card.full-art .card-art-window>.photo-yanis-vs-zg{object-fit:contain;object-position:50% 0%;transform:scale(1.04);transform-origin:50% 25%}
+.tcg-card.full-art .card-art-window>.photo-yanis-soldat{object-position:50% 80%;transform:scale(1.05)}
+.tcg-card.full-art .card-art-window>.photo-abde-yanis{object-position:50% 32%}
+.tcg-card.full-art .card-art-window>.photo-tom-samourai{object-position:58% 0%;transform:scale(1.28);transform-origin:60% 25%}
+.tcg-card.full-art .card-art-window>.photo-tom-u6{object-position:47% 78%}
+.tcg-card.full-art .card-art-window>.photo-le-maire{object-position:52% 26%;transform:scale(1.16);transform-origin:52% 30%}
+.tcg-card.full-art .card-art-window>.photo-emilien-larp{object-position:46% 68%}
+.tcg-card.full-art .card-art-window>.photo-ayman{object-position:49% 12%;transform:scale(1.22);transform-origin:48% 28%}
+.tcg-card.full-art .card-art-window>.photo-zg{object-position:64% 40%}
+.tcg-card.full-art .portrait:has(.photo-yanis-vs-zg)>.card-art-window{position:absolute;top:0;left:0;width:50%;height:64%}.tcg-card.full-art .portrait:has(.photo-yanis-vs-zg)>.duo-second{left:50%;border-left:1px solid #ffffff30}.tcg-card.full-art .card-art-window>.photo-yanis-vs-zg{object-fit:cover;object-position:24% 0%;transform:scale(2);transform-origin:25% 20%}.tcg-card.full-art .card-art-window>.photo-yanis-vs-zg-front{object-fit:cover;object-position:100% 100%;transform:scale(2.1);transform-origin:100% 100%}

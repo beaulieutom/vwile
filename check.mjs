@@ -11,7 +11,7 @@ vm.runInContext(await readFile('dist/combat-animation.js','utf8'),ctx);
 vm.runInContext(await readFile('dist/duel.js','utf8'),ctx);
 vm.runInContext((await readFile('dist/app.js','utf8')).replace('unlimitedCredits:true','unlimitedCredits:false'),ctx);
 const run=s=>vm.runInContext(s,ctx);
-const realIds=['zg','zg-exile','yanis-vs-zg','yanis-soldat','abde-yanis','tom-samourai','tom-u6','le-maire','emilien-larp'];
+const realIds=['zg','zg-exile','yanis-vs-zg','yanis-soldat','abde-yanis','tom-samourai','tom-u6','le-maire','emilien-larp','ayman'];
 assert.deepEqual([...run('state.cards.map(c=>c.id)')],realIds);
 assert.equal(run('state.auctions.length'),0);
 assert.equal(run('state.cards.every(c=>SPECIAL_ART[c.id]&&(c.unknown||(c.atk+c.def===BUDGETS[c.rarity])))'),true);
@@ -63,7 +63,7 @@ assert.equal(run('state.balance'),2325);
 run('state.auctions[0].ends=Date.now()-1;settleAuctions();settleAuctions();');
 assert.equal(run('cardBy("zg").owned'),1);
 assert.equal(run('state.balance'),2325);
-console.log('Verified: nine real cards only, 150 booster openings and guarantees, demo cleanup with exactly-once refund, custom cards/progress preserved, repaired deck, auctions, 64 type matchups, wheel hidden behind collection button.');
+console.log('Verified: ten real cards only, 150 booster openings and guarantees, demo cleanup with exactly-once refund, custom cards/progress preserved, repaired deck, auctions, 64 type matchups, wheel hidden behind collection button.');
 
 assert.equal(run('cardBy("tom-samourai").rarity'),'Légendaire');
 assert.equal(run('cardBy("tom-samourai").type'),'Nature');
@@ -203,7 +203,7 @@ function duelWith(player,enemy){run(`view='accueil';closeModal();state=fresh();b
 const fighters=realIds.filter(id=>id!=='le-maire');
 assert.equal(run('state.cards.filter(isPlayable).every(c=>abilitiesFor(c).length===2)'),true);
 assert.equal(run('abilitiesFor(cardBy("le-maire")).length'),0);
-assert.equal(run('new Set(Object.values(ABILITIES).flat().map(a=>a.name)).size'),16);
+assert.equal(run('new Set(Object.values(ABILITIES).flat().map(a=>a.name)).size'),18);
 for(const player of fighters)for(const enemy of fighters){
  duelWith(player,enemy);
  // Prediction must neither consume counters nor alter HP.
@@ -224,7 +224,7 @@ for(const player of fighters)for(const enemy of fighters){
  }
  assert.equal(run('battle.over'),true);
 }
-console.log('Verified: 16 distinct abilities, exact read-only damage previews and 64 complete matchups with attacks/supports, no recoil and bounded HP.');
+console.log('Verified: 18 distinct abilities, exact read-only damage previews and 81 complete matchups with attacks/supports, no recoil and bounded HP.');
 
 duelWith('zg','zg');run('battle.php=3000;applyAbility(1);');
 assert.equal(run('battle.php'),3200);assert.equal(run('passiveMemory(cardBy("zg")).shield'),250);
@@ -288,3 +288,21 @@ const cancelled=[...scheduled.values()];run('clearCombatPresentation();');for(co
 assert.equal(run('isCombatBusy()'),false);assert.equal(run('combatPresentation.queue.length'),0);
 ctx.matchMedia=()=>({matches:true});run('queueCombatStrike({type:"Feu"});');assert.equal(run('combatPresentation.queue.length'),0);delete ctx.matchMedia;run('view="accueil";');
 console.log('Verified: attack/support animations queue separately, live health matches each impact, cancellation and reduced motion.');
+duelWith('ayman','zg');
+assert.equal(run('cardBy("ayman").title'),'Le Fou du bus');
+assert.equal(run('cardBy("ayman").rarity'),'Mythique');
+assert.equal(run('cardBy("ayman").atk+cardBy("ayman").def'),4200);
+run('for(let i=0;i<5;i++)takeBattleDamage(false,100);');
+assert.equal(run('passiveMemory(cardBy("ayman")).vestiges'),3);
+const aymanPreview=run('abilityPrediction(cardBy("ayman"),abilitiesFor(cardBy("ayman"))[0]).loss');
+run('applyAbility(0);');
+assert.equal(run('4000-battle.ehp'),aymanPreview);
+assert.equal(run('passiveMemory(cardBy("ayman")).vestiges'),0);
+assert.equal(run('passiveMemory(cardBy("ayman"),true).vestiges'),0);
+run('battle.php=1400;');assert.equal(run('passiveStats(cardBy("ayman")).def'),150);
+run('state.cards=state.cards.filter(c=>c.id!=="ayman");state.balance=1234;migrateCards(state);migrateCards(state);');
+assert.equal(run('state.cards.filter(c=>c.id==="ayman").length'),1);
+assert.equal(run('cardBy("ayman").owned'),1);assert.equal(run('state.balance'),1234);
+run('cardBy("ayman").title="Le Magnat déchu";cardBy("ayman").owned=4;migrateCards(state);');
+assert.equal(run('cardBy("ayman").title'),'Le Fou du bus');assert.equal(run('cardBy("ayman").owned'),4);
+console.log('Verified: Ayman Le Fou du bus, Mythique Full Art, bounded vestiges, matching damage preview, survival threshold and idempotent collection addition/rename.');
