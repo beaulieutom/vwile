@@ -226,3 +226,9 @@
 .tcg-card.full-art:not(.unknown-card) .card-title,.tcg-card.full-art.long-title:not(.unknown-card) .card-title,.tcg-card.full-art.unknown-card .card-title{top:13%;bottom:auto;left:5%;right:5%;text-align:center;font-size:clamp(18px,10.5cqw,32px);font-weight:800;text-shadow:0 1px 4px #0008;letter-spacing:.3px;max-height:20%;line-height:1.05}
 .tcg-card.full-art>.portrait:after{background:linear-gradient(180deg,transparent 0%,transparent 39%,#09061185 48%,#090611e8 64%,#090611fc 100%)}
 @media(max-width:650px){.deck-slot .tcg-card.full-art .card-top>.type-badge{font-size:7px;padding:3px 4px}.deck-slot .tcg-card.full-art .card-top>.card-rarity-pill{font-size:6.5px;padding:3px 4px}}
+/* Compact single header: type / character / rarity. */
+.tcg-card.full-art .card-top{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,2.2fr) minmax(0,1.1fr);align-items:center;gap:3px;inset:2.5% 4% auto;padding:0;background:none}
+.tcg-card.full-art:not(.unknown-card) .card-top>.card-title,.tcg-card.full-art.long-title:not(.unknown-card) .card-top>.card-title,.tcg-card.full-art.unknown-card .card-top>.card-title{position:static;inset:auto;max-height:none;min-width:0;margin:0;text-align:center;font-size:clamp(8px,5cqw,15px);font-weight:800;line-height:1.1;letter-spacing:0;text-shadow:0 1px 3px #0009;white-space:normal;overflow:visible}
+.tcg-card.full-art .card-top>.type-badge{justify-self:start;font-size:clamp(6.5px,3.8cqw,9px);line-height:1.1;padding:3px 3px;letter-spacing:0;border-radius:3px;max-width:100%}
+.tcg-card.full-art .card-top>.card-rarity-pill{justify-self:end;font-size:clamp(6px,3.4cqw,9px);line-height:1.1;padding:3px 3px;letter-spacing:0;border-radius:3px;max-width:100%}
+@media(max-width:650px){.deck-slot .tcg-card.full-art .card-top{inset:2.5% 4% auto;gap:2px}.deck-slot .tcg-card.full-art .card-top>.type-badge{font-size:6px;padding:2px}.deck-slot .tcg-card.full-art .card-top>.card-rarity-pill{font-size:5.5px;padding:2px}}
